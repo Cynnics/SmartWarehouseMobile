@@ -1,23 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:gravity="center_horizontal"
+    android:padding="24dp">
 
+    <!-- Imagen de perfil -->
+    <ImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_user"
+        android:background="@drawable/circle_bg"
+        android:scaleType="centerCrop" />
+
+    <!-- Nombre -->
     <TextView
+        android:id="@+id/tvNombre"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aquí irán el perfil"
+        android:layout_marginBottom="8dp"
+        android:text="Juan Pérez"
         android:textColor="#004080"
-        android:textSize="20sp" />
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="#004080"
-        android:titleTextColor="#FFFFFF"
-        android:title="SmartWarehouse" />
+        android:textSize="22sp"
+        android:textStyle="bold" />
 
+    <!-- Correo -->
+    <TextView
+        android:id="@+id/tvCorreo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="juanperez@empresa.com"
+        android:textColor="#333"
+        android:textSize="16sp" />
+
+    <!-- Rol -->
+    <TextView
+        android:id="@+id/tvRol"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Repartidor"
+        android:textColor="#666"
+        android:textSize="16sp" />
+
+    <!-- Teléfono -->
+    <TextView
+        android:id="@+id/tvTelefono"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="Teléfono: +34 600 123 456"
+        android:textColor="#555"
+        android:textSize="15sp" />
+
+    <!-- Botones -->
+    <Button
+        android:id="@+id/btnEditar"
+        android:text="Editar Perfil"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#00BFFF"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnCerrarSesion"
+        android:text="Cerrar Sesión"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#FFA500"
+        android:textColor="#FFFFFF"/>
 </LinearLayout>

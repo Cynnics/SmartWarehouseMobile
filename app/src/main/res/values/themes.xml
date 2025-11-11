@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.SmartWarehouse" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Colores base -->
+        <item name="colorPrimary">#1976D2</item>
+        <item name="colorPrimaryDark">#1565C0</item>
+        <item name="colorAccent">#FF9800</item>
+        <item name="android:statusBarColor">#1565C0</item>
+        <item name="android:windowBackground">#E3F2FD</item>
+    </style>
+</resources>

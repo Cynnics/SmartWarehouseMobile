@@ -1,23 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:padding="8dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aquí irán las rutas"
+        android:layout_margin="8dp"
+        android:text="Rutas de Entrega"
         android:textColor="#004080"
-        android:textSize="20sp" />
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="#004080"
-        android:titleTextColor="#FFFFFF"
-        android:title="SmartWarehouse" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
+    <!-- Mapa simulado -->
+
+    <!-- Lista de rutas -->
+    <ImageView
+        android:id="@+id/imgMapa"
+        android:layout_width="37dp"
+        android:layout_height="38dp"
+        android:contentDescription="Mapa"
+        android:scaleType="centerCrop"
+        android:src="@drawable/map_placeholder" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRutas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp" />
 </LinearLayout>

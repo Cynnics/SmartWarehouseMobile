@@ -20,7 +20,9 @@ class LoginActivity : AppCompatActivity() {
         val btnLogin = findViewById<Button>(R.id.btnLogin)
 
         btnLogin.setOnClickListener {
-            val usuario = etUsuario.text.toString()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            /*val usuario = etUsuario.text.toString()
             val password = etPassword.text.toString()
 
             if (usuario.isEmpty() || password.isEmpty()) {
@@ -42,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this@LoginActivity, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
                 }
-            }
+            }*/
         }
     }
 }

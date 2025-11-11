@@ -1,22 +1,43 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp">
-
-    <Button
-        android:id="@+id/btnVerPedidos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ver pedidos" />
+    android:padding="24dp"
+    android:background="#E3F2FD"
+    android:gravity="center">
 
     <TextView
-        android:id="@+id/tvPedidos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pedidos:"
-        android:textSize="20sp"
-        android:visibility="visible" />
+        android:layout_marginBottom="30dp"
+        android:text="Menú Principal"
+        android:textColor="#004080"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/btnPedidos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ver pedidos"
+        android:backgroundTint="#00BFFF"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="15dp" />
+
+    <Button
+        android:id="@+id/btnRutas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rutas de entrega"
+        android:backgroundTint="#00BFFF"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="15dp" />
+
+    <Button
+        android:id="@+id/btnPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mi perfil"
+        android:backgroundTint="#00BFFF"
+        android:textColor="#FFFFFF" />
 </LinearLayout>

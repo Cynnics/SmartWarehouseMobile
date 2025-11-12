@@ -23,7 +23,13 @@
         <activity android:name=".mobile.RutasActivity" />
         <activity android:name=".mobile.PerfilActivity" />
         <activity android:name=".mobile.MainActivity" />
-        <activity android:name=".mobile.RutaDetalleActivity" />
+        <activity
+            android:name=".mobile.RutaDetalleActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:launchMode="singleTop"
+            android:hardwareAccelerated="true"/>
+
 
         <activity
             android:name=".mobile.LoginActivity"

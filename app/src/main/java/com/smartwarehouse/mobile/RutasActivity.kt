@@ -31,7 +31,12 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
         // Mapa
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.mapFragment) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+
+        mapFragment.getMapAsync { map ->
+            googleMap = map
+            setupMap()
+        }
+
 
         // RecyclerView
         val recycler = findViewById<RecyclerView>(R.id.recyclerRutas)
@@ -119,4 +124,11 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
         // ✅ Evita que el mapa quede renderizando al salir
         handler.removeCallbacksAndMessages(null)
     }
+
+    private fun setupMap() {
+        googleMap.uiSettings.isZoomControlsEnabled = false
+        googleMap.uiSettings.isMyLocationButtonEnabled = false
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(40.4168, -3.7038), 12f))
+    }
+
 }

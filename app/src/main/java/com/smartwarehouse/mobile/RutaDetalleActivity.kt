@@ -32,9 +32,12 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var tvDestino: TextView
     private lateinit var tvEstado: TextView
     private lateinit var btnCompletar: Button
+    private lateinit var btnNavegar: Button
+    private lateinit var btnVerPasos: Button
 
     private val job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
+    private val mapHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +48,8 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         tvDestino = findViewById(R.id.tvDestinoDetalle)
         tvEstado = findViewById(R.id.tvEstadoDetalle)
         btnCompletar = findViewById(R.id.btnCompletar)
+        btnNavegar = findViewById(R.id.btnNavegar)
+        btnVerPasos = findViewById(R.id.btnVerPasos)
 
         val repartidor = intent.getStringExtra("repartidor") ?: "Desconocido"
         val origenTxt = intent.getStringExtra("origen") ?: "Sin origen"
@@ -65,6 +70,16 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             btnCompletar.isEnabled = false
             btnCompletar.text = "Entrega finalizada"
         }
+
+        btnNavegar.setOnClickListener {
+            iniciarNavegacion()
+        }
+
+        btnVerPasos.setOnClickListener {
+            mostrarPasos()
+        }
+        window.setBackgroundDrawable(null)
+
     }
 
     override fun onDestroy() {
@@ -75,6 +90,10 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         Log.d(TAG, "Mapa listo.")
         map = googleMap
+
+        map.uiSettings.isMapToolbarEnabled = true
+        map.uiSettings.isZoomControlsEnabled = true
+        map.uiSettings.isMyLocationButtonEnabled = false
 
         val origenTxt = intent.getStringExtra("origen") ?: ""
         val destinoTxt = intent.getStringExtra("destino") ?: ""
@@ -101,15 +120,11 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(middle, 12f))
 
         map.setOnMapLoadedCallback {
-            Log.d(TAG, "Mapa cargado completamente. Dibujando ruta (retraso 400ms)...")
-            // Pequeño retraso para evitar que el render se congele
-            mapHandler.postDelayed({
-                dibujarRuta(origen, destino)
-            }, 400)
+            Log.d(TAG, "Mapa cargado completamente. Dibujando ruta...")
+            dibujarRuta(origen, destino)
         }
-    }
 
-    private val mapHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    }
 
     private fun dibujarRuta(origen: LatLng, destino: LatLng) {
         val apiKey = "AIzaSyD9ooqhxBFDRbQbsXqLBY5neUspRBV3W-8"
@@ -118,8 +133,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 "&destination=${destino.latitude},${destino.longitude}" +
                 "&key=$apiKey"
 
-        Log.d(TAG, "URL Directions: $url")
-
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
@@ -127,10 +140,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
         uiScope.launch(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Ejecutando petición HTTP...")
                 val response = client.newCall(Request.Builder().url(url).build()).execute()
-                Log.d(TAG, "HTTP code: ${response.code}")
-
                 val body = response.body?.string()
                 response.close()
 
@@ -141,7 +151,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 val json = JSONObject(body)
                 val routes = json.optJSONArray("routes")
-
                 if (routes == null || routes.length() == 0) {
                     Log.e(TAG, "Sin rutas encontradas.")
                     withContext(Dispatchers.Main) {
@@ -154,22 +163,30 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     .getJSONObject("overview_polyline")
                     .getString("points")
 
+                // 👉 decodifica en hilo de fondo
                 val decodedPath = PolyUtil.decode(points)
-                Log.d(TAG, "Ruta decodificada correctamente: ${decodedPath.size} puntos")
+                Log.d(TAG, "Ruta decodificada: ${decodedPath.size} puntos")
 
                 withContext(Dispatchers.Main) {
-                    if (::map.isInitialized) {
-                        try {
-                            map.addPolyline(
-                                PolylineOptions()
-                                    .addAll(decodedPath)
-                                    .color(Color.BLUE)
-                                    .width(8f)
-                            )
-                            Log.d(TAG, "Ruta dibujada correctamente.")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error dibujando la ruta", e)
-                        }
+                    if (!::map.isInitialized) return@withContext
+
+                    try {
+                        // Dibuja la ruta con menos carga
+                        val polyline = map.addPolyline(
+                            PolylineOptions()
+                                .addAll(decodedPath)
+                                .color(Color.BLUE)
+                                .width(8f)
+                        )
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(
+                            com.google.android.gms.maps.model.LatLngBounds.Builder().apply {
+                                decodedPath.forEach { include(it) }
+                            }.build(),
+                            120
+                        ))
+                        Log.d(TAG, "Ruta dibujada correctamente.")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error dibujando la ruta", e)
                     }
                 }
 
@@ -179,6 +196,44 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     Toast.makeText(this@RutaDetalleActivity, "Error al obtener la ruta", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+
+    private val pasosRuta = mutableListOf<String>()
+
+    private fun mostrarPasos() {
+        if (pasosRuta.isEmpty()) {
+            Toast.makeText(this, "Todavía no se han cargado los pasos de la ruta", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Pasos de la ruta")
+            .setItems(pasosRuta.toTypedArray(), null)
+            .setPositiveButton("Cerrar", null)
+            .show()
+    }
+
+    private fun iniciarNavegacion() {
+        val destinoTxt = intent.getStringExtra("destino") ?: return
+        val ubicaciones = mapOf(
+            "Almacén Central" to LatLng(40.4168, -3.7038),
+            "Almacén Norte" to LatLng(40.45, -3.70),
+            "Depósito Este" to LatLng(40.42, -3.68),
+            "Tienda Sur" to LatLng(40.38, -3.72),
+            "Sucursal Centro" to LatLng(40.415, -3.70),
+            "Supermercado 12" to LatLng(40.40, -3.69)
+        )
+
+        val destino = ubicaciones[destinoTxt]
+        if (destino != null) {
+            val uri = android.net.Uri.parse("google.navigation:q=${destino.latitude},${destino.longitude}")
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+            intent.setPackage("com.google.android.apps.maps")
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "Destino no válido", Toast.LENGTH_SHORT).show()
         }
     }
 }

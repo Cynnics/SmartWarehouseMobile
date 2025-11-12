@@ -65,4 +65,23 @@
         android:backgroundTint="#007ACC"
         android:textColor="#FFFFFF" />
 
+    <Button
+        android:id="@+id/btnNavegar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Iniciar navegación"
+        android:backgroundTint="#2E7D32"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnVerPasos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Ver pasos de la ruta"
+        android:backgroundTint="#0288D1"
+        android:textColor="#FFFFFF" />
+
+
 </LinearLayout>

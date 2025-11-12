@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:id="@+id/tvTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Detalle de Ruta"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#004080"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvRepartidorDetalle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Repartidor:"
+        android:textSize="16sp"
+        android:textColor="#333" />
+
+    <TextView
+        android:id="@+id/tvOrigenDetalle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Origen:"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/tvDestinoDetalle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Destino:"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/tvEstadoDetalle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Estado:"
+        android:textColor="#FFA500"
+        android:textStyle="italic"
+        android:layout_marginTop="8dp" />
+
+    <fragment
+        android:id="@+id/detalleMapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnCompletar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Marcar entrega completada"
+        android:backgroundTint="#007ACC"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>

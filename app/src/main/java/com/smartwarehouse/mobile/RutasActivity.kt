@@ -1,7 +1,10 @@
 package com.smartwarehouse.mobile
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -43,9 +46,60 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
+        // 👉 Verifica permisos de ubicación
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Si el permiso ya está concedido, habilita la ubicación del usuario
+            googleMap.isMyLocationEnabled = true
+        } else {
+            // Si no, solicita el permiso al usuario
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1001
+            )
+        }
+
         // Simula la ubicación del almacén central
         val almacenCentral = LatLng(40.4168, -3.7038) // Madrid
         googleMap.addMarker(MarkerOptions().position(almacenCentral).title("Almacén Central"))
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(almacenCentral, 12f))
+
+        // Múltiples ubicaciones simuladas
+        val ubicaciones = listOf(
+            LatLng(40.4168, -3.7038),  // Madrid
+            LatLng(40.4379, -3.6793),  // Chamartín
+            LatLng(40.4050, -3.7100)   // Usera
+        )
+
+        for ((index, ubicacion) in ubicaciones.withIndex()) {
+            googleMap.addMarker(
+                MarkerOptions()
+                    .position(ubicacion)
+                    .title("Repartidor ${index + 1}")
+                    .snippet("Estado: En ruta")
+            )
+        }
     }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                googleMap.isMyLocationEnabled = true
+            }
+        }
+    }
+
 }

@@ -23,6 +23,8 @@
         <activity android:name=".mobile.RutasActivity" />
         <activity android:name=".mobile.PerfilActivity" />
         <activity android:name=".mobile.MainActivity" />
+        <activity android:name=".mobile.RutaDetalleActivity" />
+
         <activity
             android:name=".mobile.LoginActivity"
             android:exported="true">

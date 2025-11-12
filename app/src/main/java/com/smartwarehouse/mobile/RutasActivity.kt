@@ -3,6 +3,8 @@ package com.smartwarehouse.mobile
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,17 +22,18 @@ import com.smartwarehouse.mobile.model.Ruta
 class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var googleMap: GoogleMap
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rutas)
 
-        // Inicializa el mapa
+        // Mapa
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.mapFragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // Configura el RecyclerView
+        // RecyclerView
         val recycler = findViewById<RecyclerView>(R.id.recyclerRutas)
         recycler.layoutManager = LinearLayoutManager(this)
 
@@ -46,16 +49,14 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
-        // 👉 Verifica permisos de ubicación
+        // Permisos de ubicación
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            // Si el permiso ya está concedido, habilita la ubicación del usuario
-            googleMap.isMyLocationEnabled = true
+            googleMap.isMyLocationEnabled = false // ✅ NO activar aún (espera a carga completa)
         } else {
-            // Si no, solicita el permiso al usuario
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -63,19 +64,26 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
 
-        // Simula la ubicación del almacén central
-        val almacenCentral = LatLng(40.4168, -3.7038) // Madrid
-        googleMap.addMarker(MarkerOptions().position(almacenCentral).title("Almacén Central"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(almacenCentral, 12f))
+        // Centrar cámara
+        val almacenCentral = LatLng(40.4168, -3.7038)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(almacenCentral, 11f))
 
-        // Múltiples ubicaciones simuladas
+        // Esperar a que el mapa termine de renderizar
+        googleMap.setOnMapLoadedCallback {
+            handler.postDelayed({
+                agregarMarcadores()
+            }, 100)
+        }
+    }
+
+    private fun agregarMarcadores() {
         val ubicaciones = listOf(
             LatLng(40.4168, -3.7038),  // Madrid
             LatLng(40.4379, -3.6793),  // Chamartín
             LatLng(40.4050, -3.7100)   // Usera
         )
 
-        for ((index, ubicacion) in ubicaciones.withIndex()) {
+        ubicaciones.forEachIndexed { index, ubicacion ->
             googleMap.addMarker(
                 MarkerOptions()
                     .position(ubicacion)
@@ -84,6 +92,7 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -91,7 +100,10 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == 1001 &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -102,4 +114,9 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // ✅ Evita que el mapa quede renderizando al salir
+        handler.removeCallbacksAndMessages(null)
+    }
 }

@@ -69,6 +69,10 @@ dependencies {
     // Google Maps
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    // Directions API
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0") // para hacer peticiones HTTP
 
 
 }

@@ -1,9 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
+    android:padding="8dp"
     tools:context=".mobile.RutasActivity">
 
     <TextView
@@ -15,18 +17,17 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Contenedor para el mapa real -->
+    <!-- Fragmento de Google Maps -->
     <fragment
         android:id="@+id/mapFragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="250dp" />
 
-    <!-- Lista de rutas debajo del mapa -->
+    <!-- Lista de rutas -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerRutas"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:layout_marginTop="8dp" />
 </LinearLayout>

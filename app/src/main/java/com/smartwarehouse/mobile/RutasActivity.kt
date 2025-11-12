@@ -16,17 +16,18 @@ import com.smartwarehouse.mobile.model.Ruta
 
 class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var mMap: GoogleMap
+    private lateinit var googleMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rutas)
 
-        // Inicializar el mapa
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
+        // Inicializa el mapa
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.mapFragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // Configurar lista de rutas
+        // Configura el RecyclerView
         val recycler = findViewById<RecyclerView>(R.id.recyclerRutas)
         recycler.layoutManager = LinearLayoutManager(this)
 
@@ -39,12 +40,12 @@ class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
         recycler.adapter = RutaAdapter(rutas)
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
 
-        // Punto de ejemplo (Madrid)
-        val madrid = LatLng(40.4168, -3.7038)
-        mMap.addMarker(MarkerOptions().position(madrid).title("Centro logístico"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(madrid, 12f))
+        // Simula la ubicación del almacén central
+        val almacenCentral = LatLng(40.4168, -3.7038) // Madrid
+        googleMap.addMarker(MarkerOptions().position(almacenCentral).title("Almacén Central"))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(almacenCentral, 12f))
     }
 }

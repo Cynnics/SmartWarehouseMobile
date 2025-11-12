@@ -1,9 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    android:padding="8dp">
+    tools:context=".mobile.RutasActivity">
 
     <TextView
         android:layout_width="match_parent"
@@ -14,20 +15,18 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Mapa simulado -->
+    <!-- Contenedor para el mapa real -->
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="250dp" />
 
-    <!-- Lista de rutas -->
-    <ImageView
-        android:id="@+id/imgMapa"
-        android:layout_width="37dp"
-        android:layout_height="38dp"
-        android:contentDescription="Mapa"
-        android:scaleType="centerCrop"
-        android:src="@drawable/map_placeholder" />
-
+    <!-- Lista de rutas debajo del mapa -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerRutas"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginTop="8dp" />
 </LinearLayout>

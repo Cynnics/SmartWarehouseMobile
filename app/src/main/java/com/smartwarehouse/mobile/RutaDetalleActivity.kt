@@ -127,7 +127,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun dibujarRuta(origen: LatLng, destino: LatLng) {
-        val apiKey = "AIzaSyD9ooqhxBFDRbQbsXqLBY5neUspRBV3W-8"
+        val apiKey = "AIzaSyBJW9ODwvD58t7OYl9Qs1mnvBPkxsKf2LU"
         val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${origen.latitude},${origen.longitude}" +
                 "&destination=${destino.latitude},${destino.longitude}" +

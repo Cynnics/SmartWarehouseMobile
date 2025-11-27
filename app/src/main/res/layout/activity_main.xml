@@ -1,43 +1,113 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="#E3F2FD"
-    android:gravity="center">
+    android:background="@color/background"
+    tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Header Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:text="Menú Principal"
-        android:textColor="#004080"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:layout_margin="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <Button
-        android:id="@+id/btnPedidos"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ver pedidos"
-        android:backgroundTint="#00BFFF"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="15dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
 
-    <Button
-        android:id="@+id/btnRutas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Rutas de entrega"
-        android:backgroundTint="#00BFFF"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="15dp" />
+            <TextView
+                android:id="@+id/welcomeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bienvenido"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
 
-    <Button
-        android:id="@+id/btnPerfil"
-        android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/roleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rol: Usuario"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Menu Buttons -->
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Mi perfil"
-        android:backgroundTint="#00BFFF"
-        android:textColor="#FFFFFF" />
-</LinearLayout>
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Botón Pedidos -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPedidos"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="📦 Mis Pedidos"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:iconGravity="start"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Botón Rutas -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRutas"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="🚚 Rutas de Entrega"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_menu_directions"
+            app:iconGravity="start"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Botón Perfil -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPerfil"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="👤 Mi Perfil"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_menu_myplaces"
+            app:iconGravity="start"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Botón Cerrar Sesión -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="🚪 Cerrar Sesión"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@android:drawable/ic_lock_power_off"
+            app:iconGravity="start"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="@color/error"
+            app:strokeColor="@color/error"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

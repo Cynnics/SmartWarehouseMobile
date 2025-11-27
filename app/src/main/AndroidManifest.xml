@@ -2,10 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permisos -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
 
 
@@ -17,35 +20,50 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SmartWarehouse">
+        android:theme="@style/Theme.SmartWarehouse"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
 
-        <activity android:name=".mobile.PedidosActivity" />
-        <activity android:name=".mobile.RutasActivity" />
-        <activity android:name=".mobile.PerfilActivity" />
-        <activity android:name=".mobile.MainActivity" />
+
+        <!-- LoginActivity como launcher -->
         <activity
-            android:name=".mobile.RutaDetalleActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:launchMode="singleTop"
-            android:hardwareAccelerated="true"/>
-
-
-        <activity
-            android:name=".mobile.LoginActivity"
-            android:exported="true">
-
+            android:name=".ui.login.LoginActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- MainActivity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Otras activities -->
+        <activity
+            android:name=".ui.pedidos.PedidosActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.rutas.RutasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.rutas.RutaDetalleActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.perfil.PerfilActivity"
+            android:exported="false" />
+
+        <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBJW9ODwvD58t7OYl9Qs1mnvBPkxsKf2LU" />
+            android:value="AIzaSyDTRdx3MybA_N2l5hbphrz6iNOB2btipQ0" />
 
     </application>
-
-
 
 </manifest>

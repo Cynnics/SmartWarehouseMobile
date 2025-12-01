@@ -131,4 +131,14 @@ class PedidoRepository(private val context: Context) {
             }
         }
     }
+
+    fun getPedidoById(idPedido: Int): NetworkResult<Pedido> {
+        // ejemplo de retorno de prueba
+        return NetworkResult.Success(Pedido(estado = EstadoPedido.ENTREGADO, fechaEntrega = "", fechaPedido = "", id = 0, idCliente = 0, idRepartidor = 0)) // o NetworkResult.Error("mensaje de error")
+    }
+
+
+
+
+
 }

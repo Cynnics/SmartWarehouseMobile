@@ -23,7 +23,7 @@ data class PedidoResponse(
     val fechaEntrega: String?
 )
 
-// Modelo de detalle de pedido
+// Modelo de detalle de pedido CON INFORMACIÓN DEL PRODUCTO
 data class DetallePedidoResponse(
     @SerializedName("idDetalle")
     val idDetalle: Int,
@@ -38,6 +38,17 @@ data class DetallePedidoResponse(
     val cantidad: Int,
 
     @SerializedName("subtotal")
+    val subtotal: Double
+)
+
+// Modelo extendido para la UI (con nombre del producto)
+data class DetallePedidoExtendido(
+    val idDetalle: Int,
+    val idPedido: Int,
+    val idProducto: Int,
+    val nombreProducto: String,
+    val cantidad: Int,
+    val precioUnitario: Double,
     val subtotal: Double
 )
 
@@ -65,7 +76,10 @@ data class Pedido(
     val idRepartidor: Int?,
     val estado: EstadoPedido,
     val fechaPedido: String,
-    val fechaEntrega: String?
+    val fechaEntrega: String?,
+    val nombreCliente: String? = null,
+    val direccionEntrega: String? = null,
+    val telefonoCliente: String? = null
 ) {
     fun getEstadoColor(): Int {
         return when (estado) {
@@ -82,6 +96,24 @@ data class Pedido(
             EstadoPedido.PREPARADO -> "Preparado"
             EstadoPedido.EN_REPARTO -> "En Reparto"
             EstadoPedido.ENTREGADO -> "Entregado"
+        }
+    }
+
+    fun getEstadoSiguiente(): EstadoPedido? {
+        return when (estado) {
+            EstadoPedido.PENDIENTE -> EstadoPedido.PREPARADO
+            EstadoPedido.PREPARADO -> EstadoPedido.EN_REPARTO
+            EstadoPedido.EN_REPARTO -> EstadoPedido.ENTREGADO
+            EstadoPedido.ENTREGADO -> null // Ya completado
+        }
+    }
+
+    fun getTextoBotonSiguienteEstado(): String? {
+        return when (estado) {
+            EstadoPedido.PENDIENTE -> "Marcar como Preparado"
+            EstadoPedido.PREPARADO -> "Iniciar Reparto"
+            EstadoPedido.EN_REPARTO -> "Confirmar Entrega"
+            EstadoPedido.ENTREGADO -> null
         }
     }
 }

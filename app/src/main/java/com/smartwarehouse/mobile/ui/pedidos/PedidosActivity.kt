@@ -2,7 +2,6 @@ package com.smartwarehouse.mobile.ui.pedidos
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
@@ -30,20 +29,15 @@ class PedidosActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        try {
-            super.onCreate(savedInstanceState)
-            setContentView(R.layout.activity_pedidos)
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_pedidos)
 
-            setupToolbar()
-            initializeViews()
-            setupRecyclerView()
-            setupFiltros()
-            setupObservers()
-            setupSwipeRefresh()
-        } catch (e: Exception) {
-            Log.e("PedidosActivity", "Error en onCreate", e)
-        }
-
+        setupToolbar()
+        initializeViews()
+        setupRecyclerView()
+        setupFiltros()
+        setupObservers()
+        setupSwipeRefresh()
     }
 
     private fun setupToolbar() {
@@ -149,5 +143,11 @@ class PedidosActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Recargar pedidos al volver (por si cambió algún estado)
+        viewModel.cargarPedidos()
     }
 }

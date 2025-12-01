@@ -1,6 +1,10 @@
 package com.smartwarehouse.mobile.ui.pedidos
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
@@ -23,20 +27,28 @@ class PedidoDetalleActivity : AppCompatActivity() {
     private lateinit var tvEstado: TextView
     private lateinit var tvFechaPedido: TextView
     private lateinit var tvFechaEntrega: TextView
+    private lateinit var cardCliente: LinearLayout
+    private lateinit var tvNombreCliente: TextView
+    private lateinit var tvDireccionCliente: TextView
+    private lateinit var tvTelefonoCliente: TextView
+    private lateinit var btnLlamarCliente: ImageButton
+    private lateinit var btnVerMapa: Button
     private lateinit var recyclerDetalles: RecyclerView
     private lateinit var tvSubtotal: TextView
     private lateinit var tvIva: TextView
     private lateinit var tvTotal: TextView
     private lateinit var btnCambiarEstado: Button
+    private lateinit var btnSiguienteEstado: Button
     private lateinit var progressBar: ProgressBar
 
     private val detalleAdapter = DetallePedidoAdapter()
+    private var idPedido: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pedido_detalle)
 
-        val idPedido = intent.getIntExtra("ID_PEDIDO", -1)
+        idPedido = intent.getIntExtra("ID_PEDIDO", -1)
         if (idPedido == -1) {
             showToast("Error: ID de pedido inválido")
             finish()
@@ -47,6 +59,7 @@ class PedidoDetalleActivity : AppCompatActivity() {
         initializeViews()
         setupRecyclerView()
         setupObservers()
+        setupListeners()
 
         viewModel.cargarPedido(idPedido)
         viewModel.cargarDetalles(idPedido)
@@ -65,11 +78,26 @@ class PedidoDetalleActivity : AppCompatActivity() {
         tvEstado = findViewById(R.id.tvEstado)
         tvFechaPedido = findViewById(R.id.tvFechaPedido)
         tvFechaEntrega = findViewById(R.id.tvFechaEntrega)
+
+        // Verificar si existe cardCliente (para repartidores)
+        try {
+            cardCliente = findViewById(R.id.cardCliente)
+            tvNombreCliente = findViewById(R.id.tvNombreCliente)
+            tvDireccionCliente = findViewById(R.id.tvDireccionCliente)
+            tvTelefonoCliente = findViewById(R.id.tvTelefonoCliente)
+            btnLlamarCliente = findViewById(R.id.btnLlamarCliente)
+            btnVerMapa = findViewById(R.id.btnVerMapa)
+        } catch (e: Exception) {
+            // Si no existen estas vistas, no pasa nada
+            android.util.Log.w("PedidoDetalle", "Vistas de cliente no encontradas")
+        }
+
         recyclerDetalles = findViewById(R.id.recyclerDetalles)
         tvSubtotal = findViewById(R.id.tvSubtotal)
         tvIva = findViewById(R.id.tvIva)
         tvTotal = findViewById(R.id.tvTotal)
         btnCambiarEstado = findViewById(R.id.btnCambiarEstado)
+        btnSiguienteEstado = findViewById(R.id.btnSiguienteEstado)
         progressBar = findViewById(R.id.progressBar)
     }
 
@@ -86,29 +114,8 @@ class PedidoDetalleActivity : AppCompatActivity() {
             when (result) {
                 is NetworkResult.Success -> {
                     result.data?.let { pedido ->
-                        tvIdPedido.text = "Pedido #${pedido.id}"
-                        tvEstado.text = pedido.getEstadoTexto()
-                        tvEstado.setTextColor(pedido.getEstadoColor())
-
-                        val fecha = pedido.fechaPedido.toDate()?.toFormattedString()
-                            ?: pedido.fechaPedido
-                        tvFechaPedido.text = "Fecha: $fecha"
-
-                        if (pedido.fechaEntrega != null) {
-                            val fechaEntrega = pedido.fechaEntrega.toDate()?.toFormattedString()
-                                ?: pedido.fechaEntrega
-                            tvFechaEntrega.text = "Entregado: $fechaEntrega"
-                            tvFechaEntrega.visibility = View.VISIBLE
-                        } else {
-                            tvFechaEntrega.visibility = View.GONE
-                        }
-
-                        // Mostrar botón de cambiar estado solo si es repartidor y el pedido no está entregado
-                        btnCambiarEstado.visibility = if (viewModel.esRepartidor() && pedido.estado.name != "ENTREGADO") {
-                            View.VISIBLE
-                        } else {
-                            View.GONE
-                        }
+                        mostrarInformacionPedido(pedido)
+                        configurarBotones(pedido)
                     }
                 }
                 is NetworkResult.Error -> {
@@ -155,9 +162,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
             when (result) {
                 is NetworkResult.Success -> {
                     showToast("Estado actualizado correctamente")
-                    // Recargar el pedido
-                    val idPedido = intent.getIntExtra("ID_PEDIDO", -1)
-                    viewModel.cargarPedido(idPedido)
                 }
                 is NetworkResult.Error -> {
                     showToast(result.message ?: "Error al cambiar estado")
@@ -170,11 +174,100 @@ class PedidoDetalleActivity : AppCompatActivity() {
         viewModel.isLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
+    }
 
-        // Click del botón cambiar estado
+    private fun mostrarInformacionPedido(pedido: com.smartwarehouse.mobile.data.model.response.Pedido) {
+        tvIdPedido.text = "Pedido #${pedido.id}"
+        tvEstado.text = pedido.getEstadoTexto()
+        tvEstado.setTextColor(pedido.getEstadoColor())
+
+        val fecha = pedido.fechaPedido.toDate()?.toFormattedString() ?: pedido.fechaPedido
+        tvFechaPedido.text = "Realizado: $fecha"
+
+        if (pedido.fechaEntrega != null) {
+            val fechaEntrega = pedido.fechaEntrega.toDate()?.toFormattedString() ?: pedido.fechaEntrega
+            tvFechaEntrega.text = "Entregado: $fechaEntrega"
+            tvFechaEntrega.visibility = View.VISIBLE
+        } else {
+            tvFechaEntrega.visibility = View.GONE
+        }
+
+        // Información del cliente (solo visible para repartidores)
+        try {
+            if (viewModel.esRepartidor() && ::cardCliente.isInitialized) {
+                cardCliente.visibility = View.VISIBLE
+                tvNombreCliente.text = pedido.nombreCliente ?: "Cliente #${pedido.idCliente}"
+                tvDireccionCliente.text = pedido.direccionEntrega ?: "Dirección no disponible"
+                tvTelefonoCliente.text = pedido.telefonoCliente ?: "Teléfono no disponible"
+            } else if (::cardCliente.isInitialized) {
+                cardCliente.visibility = View.GONE
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("PedidoDetalle", "Error al mostrar info del cliente", e)
+        }
+    }
+
+    private fun configurarBotones(pedido: com.smartwarehouse.mobile.data.model.response.Pedido) {
+        // Solo repartidores pueden cambiar estados
+        val puedeModificar = viewModel.esRepartidor() &&
+                pedido.idRepartidor == viewModel.getUserId()
+
+        if (puedeModificar && pedido.estado.name != "ENTREGADO") {
+            btnSiguienteEstado.visibility = View.VISIBLE
+            btnSiguienteEstado.text = pedido.getTextoBotonSiguienteEstado()
+
+            btnCambiarEstado.visibility = View.VISIBLE
+        } else {
+            btnSiguienteEstado.visibility = View.GONE
+            btnCambiarEstado.visibility = View.GONE
+        }
+    }
+
+    private fun setupListeners() {
         btnCambiarEstado.setOnClickListener {
             mostrarDialogoCambiarEstado()
         }
+
+        btnSiguienteEstado.setOnClickListener {
+            confirmarCambioEstado()
+        }
+
+        try {
+            if (::btnLlamarCliente.isInitialized) {
+                btnLlamarCliente.setOnClickListener {
+                    llamarCliente()
+                }
+            }
+
+            if (::btnVerMapa.isInitialized) {
+                btnVerMapa.setOnClickListener {
+                    abrirMapaUbicacion()
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("PedidoDetalle", "Error al configurar listeners del cliente", e)
+        }
+    }
+
+    private fun confirmarCambioEstado() {
+        val pedido = (viewModel.pedido.value as? NetworkResult.Success)?.data ?: return
+        val siguienteEstado = pedido.getEstadoSiguiente() ?: return
+
+        val mensaje = when (siguienteEstado) {
+            com.smartwarehouse.mobile.data.model.response.EstadoPedido.ENTREGADO ->
+                "¿Confirmar que el pedido ha sido entregado al cliente?"
+            else ->
+                "¿Cambiar el estado del pedido a ${siguienteEstado.name.lowercase().replace("_", " ")}?"
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar cambio de estado")
+            .setMessage(mensaje)
+            .setPositiveButton("Confirmar") { _, _ ->
+                viewModel.avanzarAlSiguienteEstado(idPedido)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun mostrarDialogoCambiarEstado() {
@@ -190,12 +283,74 @@ class PedidoDetalleActivity : AppCompatActivity() {
                     3 -> "entregado"
                     else -> return@setItems
                 }
-
-                val idPedido = intent.getIntExtra("ID_PEDIDO", -1)
                 viewModel.cambiarEstado(idPedido, nuevoEstado)
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun llamarCliente() {
+        try {
+            if (::tvTelefonoCliente.isInitialized) {
+                val telefono = tvTelefonoCliente.text.toString()
+                if (telefono != "Teléfono no disponible" && telefono.isNotBlank()) {
+                    val intent = Intent(Intent.ACTION_DIAL).apply {
+                        data = Uri.parse("tel:$telefono")
+                    }
+                    startActivity(intent)
+                } else {
+                    showToast("Teléfono no disponible")
+                }
+            }
+        } catch (e: Exception) {
+            showToast("Error al intentar llamar")
+            android.util.Log.e("PedidoDetalle", "Error al llamar", e)
+        }
+    }
+
+    private fun abrirMapaUbicacion() {
+        try {
+            if (::tvDireccionCliente.isInitialized) {
+                val direccion = tvDireccionCliente.text.toString()
+                if (direccion != "Dirección no disponible" && direccion.isNotBlank()) {
+                    val uri = Uri.parse("geo:0,0?q=$direccion")
+                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                    intent.setPackage("com.google.android.apps.maps")
+
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivity(intent)
+                    } else {
+                        showToast("Google Maps no está instalado")
+                    }
+                } else {
+                    showToast("Dirección no disponible")
+                }
+            }
+        } catch (e: Exception) {
+            showToast("Error al abrir el mapa")
+            android.util.Log.e("PedidoDetalle", "Error al abrir mapa", e)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_pedido_detalle, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                viewModel.cargarPedido(idPedido)
+                viewModel.cargarDetalles(idPedido)
+                viewModel.cargarTotales(idPedido)
+                true
+            }
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -37,22 +37,8 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
         _isLoading.value = true
 
         viewModelScope.launch {
-            // TODO: Necesitarías añadir este método al repository
-            // Por ahora, usamos getPedidos y filtramos
-            val result = pedidoRepository.getPedidos()
-            _pedido.value = when (result) {
-                is NetworkResult.Success -> {
-                    val pedido = result.data?.find { it.id == idPedido }
-                    if (pedido != null) {
-                        NetworkResult.Success(pedido)
-                    } else {
-                        NetworkResult.Error("Pedido no encontrado")
-                    }
-                }
-
-                is NetworkResult.Error -> result
-                is NetworkResult.Loading -> result
-            } as NetworkResult<Pedido>?
+            val result = pedidoRepository.getPedidoById(idPedido)
+            _pedido.value = result
             _isLoading.value = false
         }
     }
@@ -77,11 +63,41 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             val result = pedidoRepository.cambiarEstadoPedido(idPedido, nuevoEstado)
             _cambioEstadoResult.value = result
+
+            if (result is NetworkResult.Success) {
+                // Recargar el pedido después del cambio
+                cargarPedido(idPedido)
+            }
+
             _isLoading.value = false
+        }
+    }
+
+    fun avanzarAlSiguienteEstado(idPedido: Int) {
+        val pedidoActual = (_pedido.value as? NetworkResult.Success)?.data
+        pedidoActual?.let { pedido ->
+            val siguienteEstado = pedido.getEstadoSiguiente()
+            if (siguienteEstado != null) {
+                val estadoString = when (siguienteEstado) {
+                    com.smartwarehouse.mobile.data.model.response.EstadoPedido.PENDIENTE -> "pendiente"
+                    com.smartwarehouse.mobile.data.model.response.EstadoPedido.PREPARADO -> "preparado"
+                    com.smartwarehouse.mobile.data.model.response.EstadoPedido.EN_REPARTO -> "en_reparto"
+                    com.smartwarehouse.mobile.data.model.response.EstadoPedido.ENTREGADO -> "entregado"
+                }
+                cambiarEstado(idPedido, estadoString)
+            }
         }
     }
 
     fun esRepartidor(): Boolean {
         return authRepository.getUserRole() == "repartidor"
+    }
+
+    fun esCliente(): Boolean {
+        return authRepository.getUserRole() == "cliente"
+    }
+
+    fun getUserId(): Int {
+        return authRepository.getUserId()
     }
 }

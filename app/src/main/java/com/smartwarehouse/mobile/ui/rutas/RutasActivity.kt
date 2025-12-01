@@ -1,134 +1,123 @@
 package com.smartwarehouse.mobile.ui.rutas
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.smartwarehouse.mobile.R
-import com.smartwarehouse.mobile.ui.rutas.adapter.RutaAdapter
-import com.smartwarehouse.mobile.domain.model.Ruta
+import com.smartwarehouse.mobile.adapter.RutaAdapter
+import com.smartwarehouse.mobile.utils.NetworkResult
+import com.smartwarehouse.mobile.utils.showToast
 
-class RutasActivity : AppCompatActivity(), OnMapReadyCallback {
+class RutasActivity : AppCompatActivity() {
 
-    private lateinit var googleMap: GoogleMap
-    private val handler = Handler(Looper.getMainLooper())
+    private val viewModel: RutasViewModel by viewModels()
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var progressBar: ProgressBar
+    private lateinit var emptyView: TextView
+
+    private val rutaAdapter = RutaAdapter { ruta ->
+        abrirDetalleRuta(ruta.id)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rutas)
 
-        // Mapa
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.mapFragment) as SupportMapFragment
-
-        mapFragment.getMapAsync { map ->
-            googleMap = map
-            setupMap()
-        }
-
-
-        // RecyclerView
-        val recycler = findViewById<RecyclerView>(R.id.recyclerRutas)
-        recycler.layoutManager = LinearLayoutManager(this)
-
-        val rutas = listOf(
-            Ruta(1, "Juan Pérez", "Almacén Central", "Tienda Sur", "En ruta"),
-            Ruta(2, "María López", "Almacén Norte", "Sucursal Centro", "Pendiente"),
-            Ruta(3, "Carlos Ruiz", "Depósito Este", "Supermercado 12", "Completada")
-        )
-
-        recycler.adapter = RutaAdapter(rutas)
+        setupToolbar()
+        initializeViews()
+        setupRecyclerView()
+        setupObservers()
+        setupSwipeRefresh()
     }
 
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-
-        // Permisos de ubicación
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            googleMap.isMyLocationEnabled = false // ✅ NO activar aún (espera a carga completa)
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                1001
-            )
-        }
-
-        // Centrar cámara
-        val almacenCentral = LatLng(40.4168, -3.7038)
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(almacenCentral, 11f))
-
-        // Esperar a que el mapa termine de renderizar
-        googleMap.setOnMapLoadedCallback {
-            handler.postDelayed({
-                agregarMarcadores()
-            }, 100)
+    private fun setupToolbar() {
+        supportActionBar?.apply {
+            title = "Mis Rutas"
+            setDisplayHomeAsUpEnabled(true)
         }
     }
 
-    private fun agregarMarcadores() {
-        val ubicaciones = listOf(
-            LatLng(40.4168, -3.7038),  // Madrid
-            LatLng(40.4379, -3.6793),  // Chamartín
-            LatLng(40.4050, -3.7100)   // Usera
-        )
+    private fun initializeViews() {
+        recyclerView = findViewById(R.id.recyclerRutas)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        progressBar = findViewById(R.id.progressBar)
+        emptyView = findViewById(R.id.emptyView)
+    }
 
-        ubicaciones.forEachIndexed { index, ubicacion ->
-            googleMap.addMarker(
-                MarkerOptions()
-                    .position(ubicacion)
-                    .title("Repartidor ${index + 1}")
-                    .snippet("Estado: En ruta")
-            )
+    private fun setupRecyclerView() {
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(this@RutasActivity)
+            adapter = rutaAdapter
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    private fun setupObservers() {
+        viewModel.rutas.observe(this) { result ->
+            when (result) {
+                is NetworkResult.Success -> {
+                    val rutas = result.data ?: emptyList()
+                    rutaAdapter.submitList(rutas)
 
-        if (requestCode == 1001 &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                googleMap.isMyLocationEnabled = true
+                    if (rutas.isEmpty()) {
+                        emptyView.visibility = View.VISIBLE
+                        recyclerView.visibility = View.GONE
+                        emptyView.text = "No tienes rutas asignadas"
+                    } else {
+                        emptyView.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                    }
+                }
+                is NetworkResult.Error -> {
+                    showToast(result.message ?: "Error al cargar rutas")
+                    emptyView.visibility = View.VISIBLE
+                    recyclerView.visibility = View.GONE
+                    emptyView.text = "Error al cargar rutas"
+                }
+                is NetworkResult.Loading -> {
+                    // El estado de carga se maneja en isLoading
+                }
+            }
+        }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            swipeRefresh.isRefreshing = isLoading
+            progressBar.visibility = if (isLoading && rutaAdapter.itemCount == 0) {
+                View.VISIBLE
+            } else {
+                View.GONE
             }
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        // ✅ Evita que el mapa quede renderizando al salir
-        handler.removeCallbacksAndMessages(null)
+    private fun setupSwipeRefresh() {
+        swipeRefresh.setOnRefreshListener {
+            viewModel.cargarRutas()
+        }
     }
 
-    private fun setupMap() {
-        googleMap.uiSettings.isZoomControlsEnabled = false
-        googleMap.uiSettings.isMyLocationButtonEnabled = false
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(40.4168, -3.7038), 12f))
+    private fun abrirDetalleRuta(idRuta: Int) {
+        val intent = Intent(this, RutaDetalleActivity::class.java)
+        intent.putExtra("ID_RUTA", idRuta)
+        startActivity(intent)
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Recargar rutas al volver a la pantalla
+        viewModel.cargarRutas()
+    }
 }

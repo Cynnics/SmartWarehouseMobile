@@ -41,6 +41,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnIniciarRuta: Button
     private lateinit var btnCompletarRuta: Button
     private lateinit var btnNavegar: Button
+    private lateinit var btnIniciarTracking: Button
     private lateinit var progressBar: ProgressBar
 
     private var idRuta: Int = -1

@@ -83,6 +83,25 @@
             android:name=".ui.perfil.PerfilActivity"
             android:exported="false" />
 
+        <!-- Tracking Control Activity -->
+        <activity
+            android:name=".ui.tracking.TrackingControlActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Servicios de Tracking GPS -->
+        <service
+            android:name=".service.LocationTrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <service
+            android:name=".service.MockLocationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"

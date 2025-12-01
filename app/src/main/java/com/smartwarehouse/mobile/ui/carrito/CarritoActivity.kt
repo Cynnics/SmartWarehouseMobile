@@ -1,0 +1,232 @@
+package com.smartwarehouse.mobile.ui.carrito
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.*
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.smartwarehouse.mobile.R
+import com.smartwarehouse.mobile.adapter.CarritoAdapter
+import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
+import com.smartwarehouse.mobile.utils.NetworkResult
+import com.smartwarehouse.mobile.utils.showToast
+
+class CarritoActivity : AppCompatActivity() {
+
+    private val viewModel: CarritoViewModel by viewModels()
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var tvSubtotal: TextView
+    private lateinit var tvIva: TextView
+    private lateinit var tvTotal: TextView
+    private lateinit var etDireccion: EditText
+    private lateinit var etNotas: EditText
+    private lateinit var btnConfirmarPedido: Button
+    private lateinit var progressBar: ProgressBar
+    private lateinit var emptyView: LinearLayout
+
+    private val carritoAdapter = CarritoAdapter(
+        onIncrementar = { idProducto ->
+            viewModel.incrementarCantidad(idProducto)
+        },
+        onDecrementar = { idProducto ->
+            viewModel.decrementarCantidad(idProducto)
+        },
+        onEliminar = { idProducto ->
+            confirmarEliminar(idProducto)
+        }
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_carrito)
+
+        setupToolbar()
+        initializeViews()
+        setupRecyclerView()
+        setupObservers()
+        setupListeners()
+    }
+
+    private fun setupToolbar() {
+        supportActionBar?.apply {
+            title = "Mi Carrito"
+            setDisplayHomeAsUpEnabled(true)
+        }
+    }
+
+    private fun initializeViews() {
+        recyclerView = findViewById(R.id.recyclerCarrito)
+        tvSubtotal = findViewById(R.id.tvSubtotal)
+        tvIva = findViewById(R.id.tvIva)
+        tvTotal = findViewById(R.id.tvTotal)
+        etDireccion = findViewById(R.id.etDireccion)
+        etNotas = findViewById(R.id.etNotas)
+        btnConfirmarPedido = findViewById(R.id.btnConfirmarPedido)
+        progressBar = findViewById(R.id.progressBar)
+        emptyView = findViewById(R.id.emptyView)
+    }
+
+    private fun setupRecyclerView() {
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(this@CarritoActivity)
+            adapter = carritoAdapter
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.items.observe(this) { items ->
+            carritoAdapter.submitList(items)
+
+            if (items.isEmpty()) {
+                mostrarVistaVacia()
+            } else {
+                mostrarVistaConItems()
+            }
+        }
+
+        viewModel.subtotal.observe(this) { subtotal ->
+            tvSubtotal.text = String.format("%.2f €", subtotal)
+        }
+
+        viewModel.iva.observe(this) { iva ->
+            tvIva.text = String.format("%.2f €", iva)
+        }
+
+        viewModel.total.observe(this) { total ->
+            tvTotal.text = String.format("%.2f €", total)
+        }
+
+        viewModel.crearPedidoResult.observe(this) { result ->
+            when (result) {
+                is NetworkResult.Success -> {
+                    mostrarDialogoExito()
+                }
+                is NetworkResult.Error -> {
+                    showToast(result.message ?: "Error al crear el pedido")
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            btnConfirmarPedido.isEnabled = !isLoading
+        }
+    }
+
+    private fun setupListeners() {
+        btnConfirmarPedido.setOnClickListener {
+            confirmarPedido()
+        }
+    }
+
+    private fun mostrarVistaVacia() {
+        emptyView.visibility = View.VISIBLE
+        recyclerView.visibility = View.GONE
+        findViewById<View>(R.id.cardResumen).visibility = View.GONE
+        findViewById<View>(R.id.cardDireccion).visibility = View.GONE
+        btnConfirmarPedido.visibility = View.GONE
+    }
+
+    private fun mostrarVistaConItems() {
+        emptyView.visibility = View.GONE
+        recyclerView.visibility = View.VISIBLE
+        findViewById<View>(R.id.cardResumen).visibility = View.VISIBLE
+        findViewById<View>(R.id.cardDireccion).visibility = View.VISIBLE
+        btnConfirmarPedido.visibility = View.VISIBLE
+    }
+
+    private fun confirmarEliminar(idProducto: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar producto")
+            .setMessage("¿Deseas eliminar este producto del carrito?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                viewModel.eliminarItem(idProducto)
+                showToast("Producto eliminado")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun confirmarPedido() {
+        val direccion = etDireccion.text.toString().trim()
+        val notas = etNotas.text.toString().trim().ifBlank { null }
+
+        if (direccion.isBlank()) {
+            etDireccion.error = "La dirección es obligatoria"
+            etDireccion.requestFocus()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar Pedido")
+            .setMessage("¿Deseas confirmar este pedido?\n\nTotal: ${tvTotal.text}")
+            .setPositiveButton("Confirmar") { _, _ ->
+                viewModel.crearPedido(direccion, notas)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun mostrarDialogoExito() {
+        AlertDialog.Builder(this)
+            .setTitle("✅ Pedido Creado")
+            .setMessage("Tu pedido ha sido creado con éxito.\n\nPronto recibirás confirmación y podrás hacer seguimiento del mismo.")
+            .setPositiveButton("Ver Mis Pedidos") { _, _ ->
+                val intent = Intent(this, PedidosActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Volver al Catálogo") { _, _ ->
+                finish()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (!viewModel.carritoEstaVacio()) {
+            menuInflater.inflate(R.menu.menu_carrito, menu)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_vaciar -> {
+                confirmarVaciarCarrito()
+                true
+            }
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun confirmarVaciarCarrito() {
+        AlertDialog.Builder(this)
+            .setTitle("Vaciar Carrito")
+            .setMessage("¿Deseas vaciar todo el carrito?")
+            .setPositiveButton("Vaciar") { _, _ ->
+                viewModel.vaciarCarrito()
+                showToast("Carrito vaciado")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+}

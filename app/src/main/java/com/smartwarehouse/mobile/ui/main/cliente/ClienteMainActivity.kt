@@ -10,6 +10,7 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.ui.login.LoginActivity
 import com.smartwarehouse.mobile.ui.main.MainViewModel
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
+import com.smartwarehouse.mobile.ui.pedidos.crear.CrearPedidoActivity
 import com.smartwarehouse.mobile.ui.perfil.PerfilActivity
 
 class ClienteMainActivity : AppCompatActivity() {
@@ -50,7 +51,7 @@ class ClienteMainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnNuevoPedido.setOnClickListener {
-            startActivity(Intent(this, PedidosActivity::class.java))
+            startActivity(Intent(this, CrearPedidoActivity::class.java))
         }
 
         btnMisPedidos.setOnClickListener {

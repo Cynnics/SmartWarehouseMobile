@@ -54,6 +54,18 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Detalle de Pedido -->
+        <activity
+            android:name=".ui.pedidos.PedidoDetalleActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Crear Pedido (pendiente de implementar) -->
+        <activity
+            android:name=".ui.pedidos.crear.CrearPedidoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Otras activities -->
         <activity
             android:name=".ui.pedidos.PedidosActivity"

@@ -80,6 +80,7 @@ dependencies {
 
     // DataStore para almacenamiento seguro de tokens
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.swiperefreshlayout)
 
     // Testing
     testImplementation(libs.junit)

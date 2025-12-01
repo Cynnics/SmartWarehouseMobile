@@ -43,6 +43,10 @@ interface PedidoService {
     @POST("Pedidos")
     suspend fun crearPedido(@Body pedido: PedidoResponse): Response<PedidoResponse>
 
+    // POST: Crear detallePedido
+    @POST("DetallePedido")
+    suspend fun crearDetallePedido(@Body detalle: DetallePedidoResponse) : Response<DetallePedidoResponse>
+
     // PUT: Actualizar pedido
     @PUT("Pedidos/{id}")
     suspend fun actualizarPedido(

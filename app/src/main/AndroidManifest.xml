@@ -36,19 +36,27 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity -->
+        <!-- MainActivity (Router) -->
         <activity
             android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Menú Repartidor -->
+        <activity
+            android:name=".ui.main.repartidor.RepartidorMainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Menú Cliente -->
+        <activity
+            android:name=".ui.main.cliente.ClienteMainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
         <!-- Otras activities -->
         <activity
             android:name=".ui.pedidos.PedidosActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.pedidos.PedidoDetalleActivity"
             android:exported="false" />
 
         <activity

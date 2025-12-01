@@ -61,4 +61,6 @@ class AuthRepository(private val context: Context) {
     fun getUserRole(): String? = sessionManager.getUserRole()
 
     fun getUserName(): String? = sessionManager.getUserName()
+    fun getUserId(): Int = sessionManager.getUserId()
+    fun getUserEmail():String? = sessionManager.getUserEmail()
 }

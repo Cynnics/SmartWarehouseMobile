@@ -5,10 +5,10 @@ object Constants {
     // API Configuration
     // 🔥 CAMBIA ESTA IP SEGÚN EL EQUIPO DONDE EJECUTES LA API
     // Opción 1: Para emulador Android Studio
-    const val BASE_URL = "http://10.0.2.2:5294/api/"
+    //const val BASE_URL = "http://10.0.2.2:5294/"
 
     // Opción 2: Para dispositivo físico (cambia la IP según tu red)
-    // const val BASE_URL = "http://192.168.1.100:5294/api/"
+    const val BASE_URL = "http://192.168.1.135:5294/api/"
 
     // Opción 3: Para usar con túnel ngrok (desarrollo avanzado)
     // const val BASE_URL = "https://tu-url.ngrok.io/api/"

@@ -1,10 +1,12 @@
 package com.smartwarehouse.mobile.ui.carrito
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.smartwarehouse.mobile.data.model.ItemCarrito
 import com.smartwarehouse.mobile.data.repository.ProductoRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
@@ -79,6 +81,7 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         _crearPedidoResult.value = NetworkResult.Loading()
 
         viewModelScope.launch {
+
             val result = productoRepository.crearPedido(direccionEntrega, notas)
             _crearPedidoResult.value = result
             _isLoading.value = false

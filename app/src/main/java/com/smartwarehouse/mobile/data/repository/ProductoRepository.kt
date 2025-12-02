@@ -5,8 +5,8 @@ import com.smartwarehouse.mobile.data.api.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
 import com.smartwarehouse.mobile.data.api.ProductoService
 import com.smartwarehouse.mobile.data.model.Carrito
-import com.smartwarehouse.mobile.data.model.CrearPedidoRequest
-import com.smartwarehouse.mobile.data.model.ItemPedidoRequest
+import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
+import com.smartwarehouse.mobile.data.model.response.ItemPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
@@ -82,14 +82,19 @@ class ProductoRepository(private val context: Context) {
                 val idCliente = sessionManager.getUserId()
 
                 // 1. Crear el pedido
-                val pedidoRequest = com.smartwarehouse.mobile.data.model.response.PedidoResponse(
-                    idPedido = 0, // Se generará en la API
+                val pedidoRequest = CrearPedidoRequest(
                     idCliente = idCliente,
-                    idRepartidor = null,
-                    estado = "pendiente",
-                    fechaPedido = "",
-                    fechaEntrega = null
+                    items = carrito.items.map { item ->
+                        ItemPedidoRequest(
+                            idProducto = item.producto.idProducto,
+                            cantidad = item.cantidad,
+                            subtotal = item.getSubtotal()
+                        )
+                    },
+                    direccionEntrega = direccionEntrega,
+                    notas = notas
                 )
+
 
                 val pedidoResponse = pedidoService.crearPedido(pedidoRequest)
 

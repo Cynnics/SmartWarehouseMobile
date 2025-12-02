@@ -1,5 +1,6 @@
 package com.smartwarehouse.mobile.data.api
 
+import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
 import com.smartwarehouse.mobile.data.model.response.PedidoResponse
 import com.smartwarehouse.mobile.data.model.response.TotalesPedidoResponse
@@ -24,10 +25,6 @@ interface PedidoService {
     @GET("Pedidos/{id}")
     suspend fun getPedidoById(@Path("id") idPedido: Int): Response<PedidoResponse>
 
-    // GET: Obtener detalles de un pedido
-    @GET("DetallePedido/pedido/{idPedido}")
-    suspend fun getDetallesPedido(@Path("idPedido") idPedido: Int): Response<List<DetallePedidoResponse>>
-
     // GET: Obtener totales de un pedido
     @GET("Pedidos/{id}/totales")
     suspend fun getTotalesPedido(@Path("id") idPedido: Int): Response<TotalesPedidoResponse>
@@ -41,11 +38,7 @@ interface PedidoService {
 
     // POST: Crear pedido (para clientes)
     @POST("Pedidos")
-    suspend fun crearPedido(@Body pedido: PedidoResponse): Response<PedidoResponse>
-
-    // POST: Crear detallePedido
-    @POST("DetallePedido")
-    suspend fun crearDetallePedido(@Body detalle: DetallePedidoResponse) : Response<DetallePedidoResponse>
+    suspend fun crearPedido(@Body pedido: CrearPedidoRequest): Response<PedidoResponse>
 
     // PUT: Actualizar pedido
     @PUT("Pedidos/{id}")
@@ -57,4 +50,12 @@ interface PedidoService {
     // DELETE: Eliminar pedido (solo admin)
     @DELETE("Pedidos/{id}")
     suspend fun eliminarPedido(@Path("id") idPedido: Int): Response<Unit>
+
+    // GET: Obtener detalles de un pedido
+    @GET("DetallePedido/pedido/{idPedido}")
+    suspend fun getDetallesPedido(@Path("idPedido") idPedido: Int): Response<List<DetallePedidoResponse>>
+
+    // POST: Crear detallePedido
+    @POST("DetallePedido")
+    suspend fun crearDetallePedido(@Body detalle: DetallePedidoResponse) : Response<DetallePedidoResponse>
 }

@@ -68,7 +68,8 @@ data class CrearPedidoRequest(
     val idCliente: Int,
     val items: List<ItemPedidoRequest>,
     val direccionEntrega: String? = null,
-    val notas: String? = null
+    val notas: String? = null,
+    val estado: String
 )
 
 data class ItemPedidoRequest(

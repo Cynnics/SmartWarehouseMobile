@@ -148,3 +148,17 @@ fun PedidoResponse.toDomain(): Pedido {
         fechaEntrega = fechaEntrega
     )
 }
+
+data class CrearPedidoRequest(
+    val idCliente: Int,
+    val items: List<ItemPedidoRequest>,
+    val direccionEntrega: String,
+    val notas: String? = null,
+    val estado: String = "pendiente"
+)
+
+data class ItemPedidoRequest(
+    val idProducto: Int,
+    val cantidad: Int,
+    val subtotal: Double
+)

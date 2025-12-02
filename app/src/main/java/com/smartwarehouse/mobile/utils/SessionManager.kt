@@ -10,6 +10,9 @@ class SessionManager(context: Context) {
         Context.MODE_PRIVATE
     )
 
+    // Token en memoria
+    private var memoryToken: String? = null
+
     companion object {
         @Volatile
         private var INSTANCE: SessionManager? = null
@@ -23,13 +26,14 @@ class SessionManager(context: Context) {
 
     // Guardar token y datos de usuario
     fun saveAuthToken(loginResponse: LoginResponse) {
+        memoryToken = loginResponse.token // Solo en memoria
         prefs.edit().apply {
             putString(Constants.KEY_TOKEN, loginResponse.token)
             putInt(Constants.KEY_USER_ID, loginResponse.usuario.idUsuario)
             putString(Constants.KEY_USER_EMAIL, loginResponse.usuario.email)
             putString(Constants.KEY_USER_NAME, loginResponse.usuario.nombre)
             putString(Constants.KEY_USER_ROLE, loginResponse.usuario.rol)
-            putLong(Constants.KEY_TOKEN_EXPIRY, System.currentTimeMillis() + (Constants.TOKEN_EXPIRY_HOURS * 3600000))
+            //putLong(Constants.KEY_TOKEN_EXPIRY, System.currentTimeMillis() + (Constants.TOKEN_EXPIRY_HOURS * 3600000))
             //putLong(Constants.KEY_TOKEN_EXPIRY, System.currentTimeMillis() + (Constants.TOKEN_EXPIRY_MINUTES_TEST * 60 * 1000))
             apply()
         }
@@ -37,14 +41,17 @@ class SessionManager(context: Context) {
 
     // Obtener token
     fun getAuthToken(): String? {
-        return prefs.getString(Constants.KEY_TOKEN, null)
+        return memoryToken
+        //return prefs.getString(Constants.KEY_TOKEN, null)
     }
 
     // Verificar si el usuario está autenticado
     fun isLoggedIn(): Boolean {
-        val token = getAuthToken()
-        val expiry = prefs.getLong(Constants.KEY_TOKEN_EXPIRY, 0)
-        return token != null && System.currentTimeMillis() < expiry
+
+        return memoryToken != null
+        //val token = getAuthToken()
+        //val expiry = prefs.getLong(Constants.KEY_TOKEN_EXPIRY, 0)
+        //return token != null && System.currentTimeMillis() < expiry
     }
 
     // Verificar si el token ha expirado
@@ -85,6 +92,7 @@ class SessionManager(context: Context) {
 
     // Cerrar sesión
     fun clearSession() {
+        memoryToken = null
         prefs.edit().clear().apply()
     }
 }

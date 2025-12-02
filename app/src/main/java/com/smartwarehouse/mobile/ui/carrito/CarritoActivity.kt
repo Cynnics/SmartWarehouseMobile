@@ -229,4 +229,9 @@ class CarritoActivity : AppCompatActivity() {
         onBackPressed()
         return true
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.actualizarCarrito()
+    }
 }

@@ -132,9 +132,29 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    fun getPedidoById(idPedido: Int): NetworkResult<Pedido> {
-        // ejemplo de retorno de prueba
-        return NetworkResult.Success(Pedido(estado = EstadoPedido.ENTREGADO, fechaEntrega = "", fechaPedido = "", id = 0, idCliente = 0, idRepartidor = 0)) // o NetworkResult.Error("mensaje de error")
+    // Obtener pedido por ID
+    suspend fun getPedidoById(idPedido: Int): NetworkResult<Pedido> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = pedidoService.getPedidoById(idPedido)
+
+                if (response.isSuccessful) {
+                    response.body()?.let { pedidoResponse ->
+                        NetworkResult.Success(pedidoResponse.toDomain())
+                    } ?: NetworkResult.Error("Pedido no encontrado")
+                } else {
+                    NetworkResult.Error("Error al obtener el pedido: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(
+                    when (e) {
+                        is java.net.UnknownHostException -> "Sin conexión a internet"
+                        is java.net.SocketTimeoutException -> "Tiempo de espera agotado"
+                        else -> "Error: ${e.localizedMessage}"
+                    }
+                )
+            }
+        }
     }
 
 

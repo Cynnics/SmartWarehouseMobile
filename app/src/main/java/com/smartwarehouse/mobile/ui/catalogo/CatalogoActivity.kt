@@ -12,8 +12,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.badge.BadgeDrawable
-import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.appbar.MaterialToolbar
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.ProductoAdapter
 import com.smartwarehouse.mobile.ui.carrito.CarritoActivity
@@ -31,13 +30,23 @@ class CatalogoActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var emptyView: TextView
 
+    private var menuInstance: Menu? = null // 🔥 IMPORTANTE: Guardar referencia del menú
+
     private val productoAdapter = ProductoAdapter(
         onProductoClick = { producto ->
-            // Mostrar detalle del producto (opcional)
+            showToast("${producto.nombre} - ${producto.getPrecioFormateado()}")
         },
         onAgregarClick = { producto ->
+            android.util.Log.d("CatalogoActivity", "Producto agregado: ${producto.nombre}")
+
             viewModel.agregarAlCarrito(producto)
-            showToast("${producto.nombre} añadido al carrito")
+
+            // 🔥 Verificar inmediatamente
+            val itemsEnCarrito = viewModel.itemsEnCarrito.value ?: 0
+            android.util.Log.d("CatalogoActivity", "Items en carrito: $itemsEnCarrito")
+
+            showToast("${producto.nombre} añadido al carrito ($itemsEnCarrito)")
+            invalidateOptionsMenu()
         }
     )
 
@@ -45,7 +54,10 @@ class CatalogoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_catalogo)
 
-        setupToolbar()
+
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        //setupToolbar()
         initializeViews()
         setupRecyclerView()
         setupObservers()
@@ -99,7 +111,7 @@ class CatalogoActivity : AppCompatActivity() {
 
         // Observer del contador del carrito
         viewModel.itemsEnCarrito.observe(this) { cantidad ->
-            invalidateOptionsMenu() // Actualizar badge del carrito
+            invalidateOptionsMenu() // 🔥 Actualizar badge del carrito
         }
 
         // Observer de loading
@@ -155,16 +167,30 @@ class CatalogoActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_catalogo, menu)
+        menuInstance = menu // 🔥 Guardar referencia
 
-        // Añadir badge al icono del carrito
-        menu?.findItem(R.id.action_carrito)?.let { menuItem ->
-            val itemsEnCarrito = viewModel.itemsEnCarrito.value ?: 0
-            if (itemsEnCarrito > 0) {
-                menuItem.title = "🛒 ($itemsEnCarrito)"
-            }
-        }
+        // 🔥 Actualizar badge inicial
+        actualizarBadgeCarrito(menu)
 
         return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        // 🔥 Se llama cada vez que se invalida el menú
+        actualizarBadgeCarrito(menu)
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    private fun actualizarBadgeCarrito(menu: Menu?) {
+        menu?.findItem(R.id.action_carrito)?.let { menuItem ->
+            val itemsEnCarrito = viewModel.itemsEnCarrito.value ?: 0
+
+            if (itemsEnCarrito > 0) {
+                menuItem.title = "🛒 ($itemsEnCarrito)"
+            } else {
+                menuItem.title = "🛒"
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -188,6 +214,7 @@ class CatalogoActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 🔥 Actualizar contador cuando volvemos del carrito
         viewModel.actualizarContadorCarrito()
     }
 

@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -27,6 +28,7 @@ class ProductoAdapter(
     }
 
     inner class ProductoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imgProducto: ImageView = itemView.findViewById(R.id.imgProducto)
         private val tvNombre: TextView = itemView.findViewById(R.id.tvNombre)
         private val tvPrecio: TextView = itemView.findViewById(R.id.tvPrecio)
         private val tvStock: TextView = itemView.findViewById(R.id.tvStock)
@@ -39,9 +41,25 @@ class ProductoAdapter(
             tvStock.text = producto.getStockTexto()
             tvCategoria.text = producto.categoria ?: "Sin categoría"
 
+            // Configurar color del stock
+            when {
+                producto.stock == 0 -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.error))
+                }
+                producto.stock < 10 -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.warning))
+                }
+                else -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.success))
+                }
+            }
+
             // Configurar botón según stock
             btnAgregar.isEnabled = producto.tieneStock()
-            btnAgregar.text = if (producto.tieneStock()) "Agregar al Carrito" else "Sin Stock"
+            btnAgregar.text = if (producto.tieneStock()) "Agregar" else "Sin Stock"
 
             // Click en el card
             itemView.setOnClickListener {

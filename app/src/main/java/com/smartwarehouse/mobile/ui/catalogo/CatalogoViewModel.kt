@@ -89,12 +89,19 @@ class CatalogoViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun agregarAlCarrito(producto: ProductoResponse) {
+        android.util.Log.d("CatalogoViewModel", "Antes de agregar: ${ProductoRepository.carrito.getTotalItems()}")
+
         ProductoRepository.carrito.agregarProducto(producto)
+
+        android.util.Log.d("CatalogoViewModel", "Después de agregar: ${ProductoRepository.carrito.getTotalItems()}")
+
         actualizarContadorCarrito()
     }
 
     fun actualizarContadorCarrito() {
-        _itemsEnCarrito.value = ProductoRepository.carrito.getTotalItems()
+        val total = ProductoRepository.carrito.getTotalItems()
+        android.util.Log.d("CatalogoViewModel", "Actualizando contador a: $total")
+        _itemsEnCarrito.value = total
     }
 
     fun getCarrito() = ProductoRepository.carrito

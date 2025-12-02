@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Acción real para ir al carrito -->
     <item
         android:id="@+id/action_carrito"
-        android:title="Carrito"
-        android:icon="@android:drawable/ic_menu_share"
+        android:title="🛒 Carrito"
+        android:icon="@android:drawable/ic_menu_agenda"
         app:showAsAction="always" />
+
 </menu>

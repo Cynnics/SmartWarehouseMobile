@@ -12,6 +12,7 @@ import com.smartwarehouse.mobile.ui.main.MainViewModel
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
 import com.smartwarehouse.mobile.ui.pedidos.crear.CrearPedidoActivity
 import com.smartwarehouse.mobile.ui.perfil.PerfilActivity
+import com.smartwarehouse.mobile.utils.SessionManager
 
 class ClienteMainActivity : AppCompatActivity() {
 
@@ -26,6 +27,17 @@ class ClienteMainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sessionManager = SessionManager.getInstance(this)
+        if (!sessionManager.isLoggedIn()) {
+            // Token expirado o no hay sesión
+            sessionManager.clearSession()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
+
         setContentView(R.layout.activity_cliente_main)
 
         initializeViews()

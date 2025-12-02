@@ -10,6 +10,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.smartwarehouse.mobile.MainActivity
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.utils.NetworkResult
+import com.smartwarehouse.mobile.utils.SessionManager
 
 class LoginActivity : AppCompatActivity() {
 
@@ -24,10 +25,15 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Verificar si ya hay sesión activa
-        if (viewModel.isLoggedIn()) {
+        val sessionManager = SessionManager.getInstance(this)
+        if (viewModel.isLoggedIn() && !sessionManager.isTokenExpired()) {
             navigateToMain()
             return
+        } else {
+            // Si hay token pero expiró, limpiar la sesión
+            sessionManager.clearSession()
         }
+
 
         setContentView(R.layout.activity_login)
 

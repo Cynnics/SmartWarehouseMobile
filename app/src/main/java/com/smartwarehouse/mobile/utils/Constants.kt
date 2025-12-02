@@ -13,12 +13,10 @@ object Constants {
     // Opción 3: Para usar con túnel ngrok (desarrollo avanzado)
     // const val BASE_URL = "https://tu-url.ngrok.io/api/"
 
-    // 💡 TIP: Para obtener tu IP local:
-    // Windows: ipconfig (busca IPv4)
-    // Mac/Linux: ifconfig o hostname -I
-
     // JWT Configuration
     const val TOKEN_EXPIRY_HOURS = 8
+    //const val TOKEN_EXPIRY_MINUTES_TEST = 1L
+
 
     // Preferences
     const val PREFS_NAME = "smartwarehouse_prefs"

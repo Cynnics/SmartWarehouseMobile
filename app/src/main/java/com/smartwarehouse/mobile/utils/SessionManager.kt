@@ -30,6 +30,7 @@ class SessionManager(context: Context) {
             putString(Constants.KEY_USER_NAME, loginResponse.usuario.nombre)
             putString(Constants.KEY_USER_ROLE, loginResponse.usuario.rol)
             putLong(Constants.KEY_TOKEN_EXPIRY, System.currentTimeMillis() + (Constants.TOKEN_EXPIRY_HOURS * 3600000))
+            //putLong(Constants.KEY_TOKEN_EXPIRY, System.currentTimeMillis() + (Constants.TOKEN_EXPIRY_MINUTES_TEST * 60 * 1000))
             apply()
         }
     }

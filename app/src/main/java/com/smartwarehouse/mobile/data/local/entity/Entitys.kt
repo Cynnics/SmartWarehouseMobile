@@ -19,7 +19,6 @@ data class ProductoEntity(
 )
 
 @Entity(tableName = "pedido")
-@TypeConverters(DateConverter::class)
 data class PedidoEntity(
     @PrimaryKey
     val idPedido: Int,
@@ -28,8 +27,15 @@ data class PedidoEntity(
     val estado: String,
     val fechaPedido: String,
     val fechaEntrega: String?,
-    val nombreCliente: String?,
     val direccionEntrega: String?,
+
+    // 🔥 NUEVOS CAMPOS AÑADIDOS
+    val ciudad: String?,
+    val codigoPostal: String?,
+    val latitud: Double?,
+    val longitud: Double?,
+
+    val nombreCliente: String?,
     val telefonoCliente: String?,
     val lastSync: Long = System.currentTimeMillis()
 )

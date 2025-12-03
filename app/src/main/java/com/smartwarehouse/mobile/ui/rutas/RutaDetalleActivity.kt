@@ -229,13 +229,17 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             when (result) {
                 is NetworkResult.Success -> {
                     val pedidos = result.data ?: emptyList()
+
+                    // 🔥 LOG PARA DEBUG
                     pedidos.forEach {
-                        Log.d("RutaDetalle", "Pedido #${it.id} Dirección: '${it.direccionEntrega}'")
+                        Log.d("RutaDetalle", "Pedido #${it.id} Dirección: '${it.direccionEntrega}' " +
+                                "Lat: ${it.latitud}, Lng: ${it.longitud}")
                     }
+
                     tvNumeroPedidos.text = "${pedidos.size} pedidos"
 
                     if (pedidos.isNotEmpty()) {
-                        // Lanzar coroutine para geocodificar y añadir marcadores
+                        // Lanzar coroutine para añadir marcadores
                         ioScope.launch {
                             addPedidoMarkers(pedidos)
                         }
@@ -250,6 +254,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 is NetworkResult.Loading -> {}
             }
         }
+
 
         // Observer de cambio de estado
         viewModel.cambioEstadoResult.observe(this) { result ->
@@ -300,15 +305,35 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             progressBar.visibility = View.VISIBLE
         }
 
-        // Geocodificar pedidos
-        val pedidosConUbicacion = geocodePedidos(pedidos)
+        // Separar pedidos según tengan o no coordenadas
+        val pedidosConCoords = pedidos.filter { it.tieneCoordenadasValidas() }
+        val pedidosSinCoords = pedidos.filter { !it.tieneCoordenadasValidas() }
 
-        // Volver al hilo principal para añadir marcadores
+        // 🔥 LOG DE DEBUG
+        Log.d("RutaDetalle", "Pedidos con coords: ${pedidosConCoords.size}")
+        Log.d("RutaDetalle", "Pedidos sin coords: ${pedidosSinCoords.size}")
+
+        // Geocodificar los que no tienen coordenadas
+        val pedidosGeocoded = if (pedidosSinCoords.isNotEmpty()) {
+            geocodePedidos(pedidosSinCoords)
+        } else {
+            emptyList()
+        }
+
+        // Combinar todos los pedidos con ubicación
+        val pedidosConUbicacion = pedidosConCoords.map { pedido ->
+            PedidoConUbicacion(
+                pedido = pedido,
+                coordenadas = pedido.getLatLng()!! // Sabemos que existe
+            )
+        } + pedidosGeocoded
+
+        // Añadir marcadores al mapa
         withContext(Dispatchers.Main) {
             progressBar.visibility = View.GONE
 
             if (pedidosConUbicacion.isEmpty()) {
-                showToast("No se pudieron geocodificar las direcciones de los pedidos")
+                showToast("No se pudieron obtener las ubicaciones de los pedidos")
                 return@withContext
             }
 
@@ -327,18 +352,17 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     MarkerOptions()
                         .position(location)
                         .title("Pedido #${pedido.id}")
-                        .snippet("${pedido.getEstadoTexto()} - ${pedido.direccionEntrega}")
+                        .snippet("${pedido.getEstadoTexto()} - ${pedido.getDireccionCompleta()}")
                         .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
                 )
                 marker?.let { markers.add(it) }
             }
 
-            // Ajustar cámara para mostrar todos los marcadores
+            // Ajustar cámara
             if (markers.isNotEmpty()) {
                 val builder = LatLngBounds.Builder()
                 markers.forEach { builder.include(it.position) }
 
-                // Incluir ubicación actual si existe
                 currentLocationMarker?.let { builder.include(it.position) }
 
                 val bounds = builder.build()
@@ -346,7 +370,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
             }
 
-            // Calcular ruta óptima con las coordenadas reales
+            // Calcular ruta óptima
             calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion)
         }
     }

@@ -20,15 +20,26 @@ data class PedidoResponse(
     val fechaPedido: String, // Formato: "2024-11-30T10:30:00"
 
     @SerializedName("fechaEntrega")
-    val fechaEntrega: String?,   // ← FALTA EN TU CÓDIGO
+    val fechaEntrega: String?,
 
     @SerializedName("direccionEntrega")
-    val direccionEntrega: String?,   // ← FALTA EN TU CÓDIGO
+    val direccionEntrega: String?,
+
+    // 🔥 NUEVOS CAMPOS AÑADIDOS
+    @SerializedName("ciudad")
+    val ciudad: String?,
+
+    @SerializedName("codigoPostal")
+    val codigoPostal: String?,
+
+    @SerializedName("latitud")
+    val latitud: Double?,
+
+    @SerializedName("longitud")
+    val longitud: Double?,
 
     @SerializedName("notas")
     val notas: String?
-
-
 )
 
 // Modelo de detalle de pedido CON INFORMACIÓN DEL PRODUCTO
@@ -85,8 +96,15 @@ data class Pedido(
     val estado: EstadoPedido,
     val fechaPedido: String,
     val fechaEntrega: String?,
+    val direccionEntrega: String?,
+
+    // 🔥 NUEVOS CAMPOS
+    val ciudad: String?,
+    val codigoPostal: String?,
+    val latitud: Double?,
+    val longitud: Double?,
+
     val nombreCliente: String? = null,
-    val direccionEntrega: String? = null,
     val telefonoCliente: String? = null
 ) {
     fun getEstadoColor(): Int {
@@ -112,7 +130,7 @@ data class Pedido(
             EstadoPedido.PENDIENTE -> EstadoPedido.PREPARADO
             EstadoPedido.PREPARADO -> EstadoPedido.EN_REPARTO
             EstadoPedido.EN_REPARTO -> EstadoPedido.ENTREGADO
-            EstadoPedido.ENTREGADO -> null // Ya completado
+            EstadoPedido.ENTREGADO -> null
         }
     }
 
@@ -122,6 +140,28 @@ data class Pedido(
             EstadoPedido.PREPARADO -> "Iniciar Reparto"
             EstadoPedido.EN_REPARTO -> "Confirmar Entrega"
             EstadoPedido.ENTREGADO -> null
+        }
+    }
+
+    // 🔥 NUEVOS MÉTODOS PARA COORDENADAS
+    fun tieneCoordenadasValidas(): Boolean {
+        return latitud != null && longitud != null
+    }
+
+    fun getDireccionCompleta(): String {
+        val partes = listOfNotNull(
+            direccionEntrega,
+            codigoPostal,
+            ciudad
+        )
+        return partes.joinToString(", ")
+    }
+
+    fun getLatLng(): com.google.android.gms.maps.model.LatLng? {
+        return if (latitud != null && longitud != null) {
+            com.google.android.gms.maps.model.LatLng(latitud, longitud)
+        } else {
+            null
         }
     }
 }
@@ -153,7 +193,12 @@ fun PedidoResponse.toDomain(): Pedido {
         idRepartidor = idRepartidor,
         estado = EstadoPedido.fromString(estado),
         fechaPedido = fechaPedido,
-        fechaEntrega = fechaEntrega
+        fechaEntrega = fechaEntrega,
+        direccionEntrega = direccionEntrega,
+        ciudad = ciudad,
+        codigoPostal = codigoPostal,
+        latitud = latitud,
+        longitud = longitud
     )
 }
 

@@ -37,9 +37,16 @@ fun PedidoResponse.toEntity(): PedidoEntity {
         estado = this.estado,
         fechaPedido = this.fechaPedido,
         fechaEntrega = this.fechaEntrega,
-        nombreCliente = null, // TODO: Añadir en el response
-        direccionEntrega = null, // TODO: Añadir en el response
-        telefonoCliente = null // TODO: Añadir en el response
+        direccionEntrega = this.direccionEntrega,
+
+        // 🔥 NUEVOS CAMPOS
+        ciudad = this.ciudad,
+        codigoPostal = this.codigoPostal,
+        latitud = this.latitud,
+        longitud = this.longitud,
+
+        nombreCliente = null,
+        telefonoCliente = null
     )
 }
 
@@ -51,7 +58,14 @@ fun PedidoEntity.toResponse(): PedidoResponse {
         estado = this.estado,
         fechaPedido = this.fechaPedido,
         fechaEntrega = this.fechaEntrega,
-        direccionEntrega = direccionEntrega,
+        direccionEntrega = this.direccionEntrega,
+
+        // 🔥 NUEVOS CAMPOS
+        ciudad = this.ciudad,
+        codigoPostal = this.codigoPostal,
+        latitud = this.latitud,
+        longitud = this.longitud,
+
         notas = null
     )
 }
@@ -64,8 +78,35 @@ fun PedidoEntity.toDomain(): Pedido {
         estado = EstadoPedido.fromString(this.estado),
         fechaPedido = this.fechaPedido,
         fechaEntrega = this.fechaEntrega,
-        nombreCliente = this.nombreCliente,
         direccionEntrega = this.direccionEntrega,
+
+        // 🔥 NUEVOS CAMPOS
+        ciudad = this.ciudad,
+        codigoPostal = this.codigoPostal,
+        latitud = this.latitud,
+        longitud = this.longitud,
+
+        nombreCliente = this.nombreCliente,
+        telefonoCliente = this.telefonoCliente
+    )
+}
+fun Pedido.toEntity(): PedidoEntity {
+    return PedidoEntity(
+        idPedido = this.id,
+        idCliente = this.idCliente,
+        idRepartidor = this.idRepartidor,
+        estado = this.estado.name.lowercase(),
+        fechaPedido = this.fechaPedido,
+        fechaEntrega = this.fechaEntrega,
+        direccionEntrega = this.direccionEntrega,
+
+        // 🔥 NUEVOS CAMPOS
+        ciudad = this.ciudad,
+        codigoPostal = this.codigoPostal,
+        latitud = this.latitud,
+        longitud = this.longitud,
+
+        nombreCliente = this.nombreCliente,
         telefonoCliente = this.telefonoCliente
     )
 }
@@ -138,19 +179,6 @@ fun UbicacionRepartidorResponse.toEntity(idRepartidor: Int): UbicacionEntity {
 }
 
 
-fun Pedido.toEntity(): PedidoEntity {
-    return PedidoEntity(
-        idPedido = this.id,
-        idCliente = this.idCliente,
-        idRepartidor = this.idRepartidor,
-        estado = this.estado.name.lowercase(),
-        fechaPedido = this.fechaPedido,
-        fechaEntrega = this.fechaEntrega,
-        nombreCliente = this.nombreCliente,
-        direccionEntrega = this.direccionEntrega,
-        telefonoCliente = this.telefonoCliente
-    )
-}
 
 fun Ruta.toEntity(): RutaEntity {
     return RutaEntity(

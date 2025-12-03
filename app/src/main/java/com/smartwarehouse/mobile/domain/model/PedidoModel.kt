@@ -1,6 +1,6 @@
 package com.smartwarehouse.mobile.domain.model
 
-data class Pedido(
+data class PedidoModel(
     val id: Int,
     val cliente: String,
     val fecha: String,

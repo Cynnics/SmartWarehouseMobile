@@ -17,6 +17,7 @@ object Constants {
     const val TOKEN_EXPIRY_HOURS = 8
     //const val TOKEN_EXPIRY_MINUTES_TEST = 1L
 
+    const val GOOGLE_MAPS_API_KEY = "AIzaSyDTRdx3MybA_N2l5hbphrz6iNOB2btipQ0"
 
     // Preferences
     const val PREFS_NAME = "smartwarehouse_prefs"

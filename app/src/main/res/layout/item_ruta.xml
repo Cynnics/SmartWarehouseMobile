@@ -90,8 +90,8 @@
                     android:text="12.5 km"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:drawableStart="@android:drawable/ic_menu_mylocation"
-                    android:drawablePadding="4dp"/>
+                    android:drawablePadding="4dp"
+                    app:drawableStartCompat="@android:drawable/ic_menu_mylocation" />
 
                 <TextView
                     android:id="@+id/tvDuracion"
@@ -100,9 +100,9 @@
                     android:text="45 min"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:drawableStart="@android:drawable/ic_menu_recent_history"
                     android:drawablePadding="4dp"
-                    android:layout_marginStart="16dp"/>
+                    android:layout_marginStart="16dp"
+                    app:drawableStartCompat="@android:drawable/ic_menu_recent_history" />
             </LinearLayout>
 
         </LinearLayout>
@@ -113,10 +113,10 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_menu_directions"
-            android:tint="@color/primary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="@color/primary" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

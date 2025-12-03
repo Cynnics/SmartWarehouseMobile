@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.smartwarehouse.mobile.data.local.converters.DateConverter
 
-@Entity(tableName = "productos")
+@Entity(tableName = "producto")
 data class ProductoEntity(
     @PrimaryKey
     val idProducto: Int,
@@ -18,7 +18,7 @@ data class ProductoEntity(
     val lastSync: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "pedidos")
+@Entity(tableName = "pedido")
 @TypeConverters(DateConverter::class)
 data class PedidoEntity(
     @PrimaryKey
@@ -34,7 +34,7 @@ data class PedidoEntity(
     val lastSync: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "detalle_pedido")
+@Entity(tableName = "detallepedido")
 data class DetallePedidoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
@@ -46,7 +46,7 @@ data class DetallePedidoEntity(
     val lastSync: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "rutas")
+@Entity(tableName = "rutaentrega")
 data class RutaEntity(
     @PrimaryKey
     val idRuta: Int,
@@ -58,7 +58,7 @@ data class RutaEntity(
     val lastSync: Long = System.currentTimeMillis()
 )
 
-@Entity(tableName = "ubicaciones")
+@Entity(tableName = "ubicacionrepartidor")
 data class UbicacionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
@@ -66,7 +66,7 @@ data class UbicacionEntity(
     val idRepartidor: Int,
     val latitud: Double,
     val longitud: Double,
-    val fechaHora: String,
+    val fechaHora: String?,
     val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

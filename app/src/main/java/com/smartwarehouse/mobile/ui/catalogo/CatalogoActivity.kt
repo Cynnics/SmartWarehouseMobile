@@ -15,6 +15,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.ProductoAdapter
+import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.ui.carrito.CarritoActivity
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.showToast
@@ -125,14 +126,19 @@ class CatalogoActivity : AppCompatActivity() {
         }
 
         // Observer de productos (para errores)
-        viewModel.productos.observe(this) { result ->
-            when (result) {
-                is NetworkResult.Error -> {
-                    showToast(result.message ?: "Error al cargar productos")
-                }
-                else -> {}
+        viewModel.productosFiltrados.observe(this) { productos: List<ProductoResponse> ->
+            productoAdapter.submitList(productos)
+
+            if (productos.isEmpty()) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+                emptyView.text = "No se encontraron productos"
+            } else {
+                emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
             }
         }
+
     }
 
     private fun setupListeners() {

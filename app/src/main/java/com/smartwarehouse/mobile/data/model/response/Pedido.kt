@@ -20,7 +20,15 @@ data class PedidoResponse(
     val fechaPedido: String, // Formato: "2024-11-30T10:30:00"
 
     @SerializedName("fechaEntrega")
-    val fechaEntrega: String?
+    val fechaEntrega: String?,   // ← FALTA EN TU CÓDIGO
+
+    @SerializedName("direccionEntrega")
+    val direccionEntrega: String?,   // ← FALTA EN TU CÓDIGO
+
+    @SerializedName("notas")
+    val notas: String?
+
+
 )
 
 // Modelo de detalle de pedido CON INFORMACIÓN DEL PRODUCTO

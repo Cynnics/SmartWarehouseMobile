@@ -166,8 +166,8 @@
                             android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_call"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:tint="@color/primary"
-                            android:contentDescription="Llamar al cliente"/>
+                            android:contentDescription="Llamar al cliente"
+                            app:tint="@color/primary" />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton

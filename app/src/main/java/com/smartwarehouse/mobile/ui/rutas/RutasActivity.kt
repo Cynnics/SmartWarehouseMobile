@@ -61,46 +61,29 @@ class RutasActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        viewModel.rutas.observe(this) { result ->
-            when (result) {
-                is NetworkResult.Success -> {
-                    val rutas = result.data ?: emptyList()
-                    rutaAdapter.submitList(rutas)
+        // ⚡ AHORA rutas = List<Ruta>
+        viewModel.rutas.observe(this) { rutas ->
 
-                    if (rutas.isEmpty()) {
-                        emptyView.visibility = View.VISIBLE
-                        recyclerView.visibility = View.GONE
-                        emptyView.text = "No tienes rutas asignadas"
-                    } else {
-                        emptyView.visibility = View.GONE
-                        recyclerView.visibility = View.VISIBLE
-                    }
-                }
-                is NetworkResult.Error -> {
-                    showToast(result.message ?: "Error al cargar rutas")
-                    emptyView.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
-                    emptyView.text = "Error al cargar rutas"
-                }
-                is NetworkResult.Loading -> {
-                    // El estado de carga se maneja en isLoading
-                }
-            }
-        }
-
-        viewModel.isLoading.observe(this) { isLoading ->
-            swipeRefresh.isRefreshing = isLoading
-            progressBar.visibility = if (isLoading && rutaAdapter.itemCount == 0) {
-                View.VISIBLE
+            if (rutas == null || rutas.isEmpty()) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+                emptyView.text = "No tienes rutas asignadas"
             } else {
-                View.GONE
+                emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+                rutaAdapter.submitList(rutas)
             }
+
+            // Cuando Room actualiza, cierro el loading
+            swipeRefresh.isRefreshing = false
+            progressBar.visibility = View.GONE
         }
     }
 
     private fun setupSwipeRefresh() {
         swipeRefresh.setOnRefreshListener {
-            viewModel.cargarRutas()
+            progressBar.visibility = View.VISIBLE
+            viewModel.sincronizarRutas()
         }
     }
 
@@ -117,7 +100,7 @@ class RutasActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Recargar rutas al volver a la pantalla
-        viewModel.cargarRutas()
+        // Volver a sincronizar cuando regresamos
+        viewModel.sincronizarRutas()
     }
 }

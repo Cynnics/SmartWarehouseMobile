@@ -2,53 +2,48 @@ package com.smartwarehouse.mobile.ui.rutas
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.smartwarehouse.mobile.data.model.response.Ruta
+import com.smartwarehouse.mobile.data.local.AppDatabase
+import com.smartwarehouse.mobile.data.local.mappers.toDomain
+import com.smartwarehouse.mobile.data.local.mappers.toEntity
+import com.smartwarehouse.mobile.data.repository.AuthRepository
 import com.smartwarehouse.mobile.data.repository.RutaRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class RutasViewModel(application: Application) : AndroidViewModel(application) {
 
     private val rutaRepository = RutaRepository(application)
+    private val authRepository = AuthRepository(application)
+    private val database = AppDatabase.getInstance(application)
+    private val rutaDao = database.rutaDao()
 
-    private val _rutas = MutableLiveData<NetworkResult<List<Ruta>>>()
-    val rutas: LiveData<NetworkResult<List<Ruta>>> = _rutas
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    // 🔥 Flow de Room
+    val rutas = rutaDao.getRutasByRepartidor(authRepository.getUserId())
+        .map { entities -> entities.map { it.toDomain() } }
+        .asLiveData(viewModelScope.coroutineContext)
 
     init {
-        cargarRutas()
+        sincronizarRutas()
     }
 
-    fun cargarRutas() {
-        _isLoading.value = true
-        _rutas.value = NetworkResult.Loading()
-
+    fun sincronizarRutas() {
         viewModelScope.launch {
             val result = rutaRepository.getRutasRepartidor()
-            _rutas.value = result
-            _isLoading.value = false
+
+            if (result is NetworkResult.Success) {
+                val entities = result.data?.map { it.toEntity() } ?: emptyList()
+                entities.forEach { rutaDao.insertRuta(it) }
+            }
         }
     }
 
     fun filtrarRutasDeHoy() {
-        // TODO: Implementar filtro por fecha actual
-        cargarRutas()
+        // TODO: Implementar filtro por fecha en Room
     }
 
-    fun getRutasPendientes(): List<Ruta> {
-        return (_rutas.value as? NetworkResult.Success)?.data
-            ?.filter { it.estado == com.smartwarehouse.mobile.data.model.response.EstadoRuta.PENDIENTE }
-            ?: emptyList()
-    }
 
-    fun getRutasEnCurso(): List<Ruta> {
-        return (_rutas.value as? NetworkResult.Success)?.data
-            ?.filter { it.estado == com.smartwarehouse.mobile.data.model.response.EstadoRuta.EN_CURSO }
-            ?: emptyList()
-    }
+
 }

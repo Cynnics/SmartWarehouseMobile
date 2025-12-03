@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile.ui.tracking
+package com.smartwarehouse.mobile.tracking
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -79,11 +79,11 @@ class TrackingControlActivity : AppCompatActivity() {
             if (checkLocationPermission()) {
                 if (switchModoSimulacion.isChecked) {
                     // Iniciar simulación
-                    MockLocationService.startMocking(this)
+                    MockLocationService.Companion.startMocking(this)
                     showToast("🧪 Simulación GPS iniciada")
                 } else {
                     // Iniciar tracking real
-                    LocationTrackingService.startTracking(this)
+                    LocationTrackingService.Companion.startTracking(this)
                     showToast("📍 Tracking GPS iniciado")
                 }
                 updateUI()
@@ -91,12 +91,12 @@ class TrackingControlActivity : AppCompatActivity() {
         }
 
         btnDetenerTracking.setOnClickListener {
-            if (MockLocationService.isMocking) {
-                MockLocationService.stopMocking(this)
+            if (MockLocationService.Companion.isMocking) {
+                MockLocationService.Companion.stopMocking(this)
                 showToast("🧪 Simulación GPS detenida")
             }
-            if (LocationTrackingService.isTracking) {
-                LocationTrackingService.stopTracking(this)
+            if (LocationTrackingService.Companion.isTracking) {
+                LocationTrackingService.Companion.stopTracking(this)
                 showToast("📍 Tracking GPS detenido")
             }
             updateUI()
@@ -162,21 +162,21 @@ class TrackingControlActivity : AppCompatActivity() {
 
     private fun updateUI() {
         // Estado del tracking real
-        tvEstadoTracking.text = if (LocationTrackingService.isTracking) {
+        tvEstadoTracking.text = if (LocationTrackingService.Companion.isTracking) {
             "✅ ACTIVO - Enviando ubicación real"
         } else {
             "❌ INACTIVO"
         }
 
         // Estado de la simulación
-        tvEstadoMock.text = if (MockLocationService.isMocking) {
+        tvEstadoMock.text = if (MockLocationService.Companion.isMocking) {
             "✅ ACTIVO - Enviando ubicación simulada"
         } else {
             "❌ INACTIVO"
         }
 
         // Botones
-        val isAnyServiceActive = LocationTrackingService.isTracking || MockLocationService.isMocking
+        val isAnyServiceActive = LocationTrackingService.Companion.isTracking || MockLocationService.Companion.isMocking
         btnIniciarTracking.isEnabled = !isAnyServiceActive
         btnDetenerTracking.isEnabled = isAnyServiceActive
     }

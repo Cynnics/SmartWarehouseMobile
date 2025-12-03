@@ -4,80 +4,60 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import com.smartwarehouse.mobile.data.local.AppDatabase
+import com.smartwarehouse.mobile.data.local.mappers.toDomain
+import com.smartwarehouse.mobile.data.local.mappers.toEntity
 import com.smartwarehouse.mobile.data.model.response.Pedido
 import com.smartwarehouse.mobile.data.repository.AuthRepository
 import com.smartwarehouse.mobile.data.repository.PedidoRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class PedidosViewModel(application: Application) : AndroidViewModel(application) {
 
     private val pedidoRepository = PedidoRepository(application)
     private val authRepository = AuthRepository(application)
-
-    private val _pedidos = MutableLiveData<NetworkResult<List<Pedido>>>()
-    val pedidos: LiveData<NetworkResult<List<Pedido>>> = _pedidos
-
-    private val _isLoading = MutableLiveData<Boolean>()
+    private val database = AppDatabase.getInstance(application)
+    private val pedidoDao = database.pedidoDao()
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _cambioEstadoResult = MutableLiveData<NetworkResult<Boolean>>()
-    val cambioEstadoResult: LiveData<NetworkResult<Boolean>> = _cambioEstadoResult
+    // 🔥 Flow de Room (pedidos del repartidor)
+    private val _estadoFiltro = MutableLiveData<String>("todos")
 
-    init {
-        cargarPedidos()
+    val pedidos: LiveData<List<Pedido>> = _estadoFiltro.switchMap { estado ->
+        if (estado == "todos") {
+            pedidoDao.getPedidosByRepartidor(authRepository.getUserId())
+                .map { it.map { it.toDomain() } }
+                .asLiveData(viewModelScope.coroutineContext)
+        } else {
+            pedidoDao.getPedidosByEstado(estado)
+                .map { it.map { it.toDomain() } }
+                .asLiveData(viewModelScope.coroutineContext)
+        }
     }
 
-    fun cargarPedidos() {
-        _isLoading.value = true
-        _pedidos.value = NetworkResult.Loading()
-
+    fun sincronizarPedidos() {
         viewModelScope.launch {
-            val result = if (authRepository.getUserRole() == "repartidor") {
-                // Si es repartidor, solo sus pedidos
-                pedidoRepository.getPedidosRepartidor()
-            } else {
-                // Si es cliente o admin, todos los pedidos
-                pedidoRepository.getPedidos()
-            }
+            _isLoading.value = true
+            // Sincronizar desde API
+            val result = pedidoRepository.getPedidosRepartidor()
 
-            _pedidos.value = result
-            _isLoading.value = false
+            if (result is NetworkResult.Success) {
+                // Guardar en Room
+                val entities = result.data?.map { it.toEntity() } ?: emptyList()
+                entities.forEach { pedidoDao.insertPedido(it) }
+            }
         }
     }
 
     fun filtrarPorEstado(estado: String) {
-        if (estado.isEmpty() || estado == "todos") {
-            cargarPedidos()
-            return
-        }
-
-        _isLoading.value = true
-        _pedidos.value = NetworkResult.Loading()
-
-        viewModelScope.launch {
-            val result = pedidoRepository.getPedidosByEstado(estado)
-            _pedidos.value = result
-            _isLoading.value = false
-        }
+        _estadoFiltro.value = estado
     }
 
-    fun cambiarEstadoPedido(idPedido: Int, nuevoEstado: String) {
-        _cambioEstadoResult.value = NetworkResult.Loading()
 
-        viewModelScope.launch {
-            val result = pedidoRepository.cambiarEstadoPedido(idPedido, nuevoEstado)
-            _cambioEstadoResult.value = result
-
-            // Si fue exitoso, recargar la lista
-            if (result is NetworkResult.Success) {
-                cargarPedidos()
-            }
-        }
-    }
-
-    fun esRepartidor(): Boolean {
-        return authRepository.getUserRole() == "repartidor"
-    }
 }

@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile
+package com.smartwarehouse.mobile.ui.main
 
 import android.content.Intent
 import android.os.Bundle

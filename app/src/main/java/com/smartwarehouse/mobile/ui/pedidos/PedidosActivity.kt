@@ -93,30 +93,18 @@ class PedidosActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        viewModel.pedidos.observe(this) { result ->
-            when (result) {
-                is NetworkResult.Success -> {
-                    val pedidos = result.data ?: emptyList()
-                    pedidoAdapter.submitList(pedidos)
+        viewModel.pedidos.observe(this) { pedidos ->
+            pedidoAdapter.submitList(pedidos)
 
-                    if (pedidos.isEmpty()) {
-                        emptyView.visibility = View.VISIBLE
-                        recyclerView.visibility = View.GONE
-                    } else {
-                        emptyView.visibility = View.GONE
-                        recyclerView.visibility = View.VISIBLE
-                    }
-                }
-                is NetworkResult.Error -> {
-                    showToast(result.message ?: "Error al cargar pedidos")
-                    emptyView.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
-                }
-                is NetworkResult.Loading -> {
-                    // El estado de carga se maneja en isLoading
-                }
+            if (pedidos.isEmpty()) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            } else {
+                emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
             }
         }
+
 
         viewModel.isLoading.observe(this) { isLoading ->
             swipeRefresh.isRefreshing = isLoading
@@ -130,7 +118,7 @@ class PedidosActivity : AppCompatActivity() {
 
     private fun setupSwipeRefresh() {
         swipeRefresh.setOnRefreshListener {
-            viewModel.cargarPedidos()
+            viewModel.sincronizarPedidos()
         }
     }
 
@@ -148,6 +136,6 @@ class PedidosActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         // Recargar pedidos al volver (por si cambió algún estado)
-        viewModel.cargarPedidos()
+        viewModel.sincronizarPedidos()
     }
 }

@@ -24,8 +24,11 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.smartwarehouse.mobile.R
+import com.smartwarehouse.mobile.data.model.response.EstadoPedido
 import com.smartwarehouse.mobile.data.model.response.Pedido
+import com.smartwarehouse.mobile.tracking.TrackingControlActivity
 import com.smartwarehouse.mobile.utils.Constants
+import com.smartwarehouse.mobile.utils.GeocodingHelper
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.showToast
 import kotlinx.coroutines.*
@@ -114,6 +117,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         btnIniciarRuta = findViewById(R.id.btnIniciarRuta)
         btnCompletarRuta = findViewById(R.id.btnCompletarRuta)
         btnNavegar = findViewById(R.id.btnNavegar)
+        btnIniciarTracking = findViewById(R.id.btnIniciarTracking)
         progressBar = findViewById(R.id.progressBar)
     }
 
@@ -225,22 +229,23 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             when (result) {
                 is NetworkResult.Success -> {
                     val pedidos = result.data ?: emptyList()
+                    pedidos.forEach {
+                        Log.d("RutaDetalle", "Pedido #${it.id} Dirección: '${it.direccionEntrega}'")
+                    }
                     tvNumeroPedidos.text = "${pedidos.size} pedidos"
 
-                    if (pedidos.isNotEmpty()){
-                        // Limpiar marcadores anteriores
-                        markers.forEach { it.remove() }
-                        markers.clear()
-
-                        // Añadir marcadores reales de pedidos
-                        addPedidoMarkers(pedidos)
-
-                        // Calcular y dibujar ruta óptima
-                        calculateOptimizedRoute(pedidos)
+                    if (pedidos.isNotEmpty()) {
+                        // Lanzar coroutine para geocodificar y añadir marcadores
+                        ioScope.launch {
+                            addPedidoMarkers(pedidos)
+                        }
+                    } else {
+                        showToast("Esta ruta no tiene pedidos asignados")
                     }
                 }
                 is NetworkResult.Error -> {
                     tvNumeroPedidos.text = "-- pedidos"
+                    showToast("Error al cargar pedidos de la ruta")
                 }
                 is NetworkResult.Loading -> {}
             }
@@ -277,68 +282,96 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         btnNavegar.setOnClickListener {
             abrirGoogleMapsNavegacion()
         }
+        btnIniciarTracking.setOnClickListener {
+            val intent = Intent(this, TrackingControlActivity::class.java)
+            startActivity(intent)
+        }
     }
     /**
      * Añade marcadores en el mapa para cada pedido
      */
-    private fun addPedidoMarkers(pedidos: List<Pedido>) {
-        pedidos.forEachIndexed { index, pedido ->
-            // TODO: Obtener coordenadas reales desde Geocoding API
-            // Por ahora usamos coordenadas de ejemplo en Madrid
-            val location = getLocationForPedido(index)
+    private suspend fun addPedidoMarkers(pedidos: List<Pedido>) {
+        // Limpiar marcadores anteriores
+        markers.forEach { it.remove() }
+        markers.clear()
 
-            val markerColor = when (pedido.estado) {
-                com.smartwarehouse.mobile.data.model.response.EstadoPedido.PENDIENTE ->
-                    BitmapDescriptorFactory.HUE_YELLOW
-                com.smartwarehouse.mobile.data.model.response.EstadoPedido.PREPARADO ->
-                    BitmapDescriptorFactory.HUE_BLUE
-                com.smartwarehouse.mobile.data.model.response.EstadoPedido.EN_REPARTO ->
-                    BitmapDescriptorFactory.HUE_ORANGE
-                com.smartwarehouse.mobile.data.model.response.EstadoPedido.ENTREGADO ->
-                    BitmapDescriptorFactory.HUE_GREEN
-            }
-
-            val marker = map.addMarker(
-                MarkerOptions()
-                    .position(location)
-                    .title("Pedido #${pedido.id}")
-                    .snippet("${pedido.getEstadoTexto()} - ${pedido.nombreCliente ?: "Cliente"}")
-                    .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
-            )
-            marker?.let { markers.add(it) }
+        // Mostrar loading
+        withContext(Dispatchers.Main) {
+            progressBar.visibility = View.VISIBLE
         }
 
-        // Ajustar cámara para mostrar todos los marcadores
-        if (markers.isNotEmpty()) {
-            val builder = LatLngBounds.Builder()
-            markers.forEach { builder.include(it.position) }
+        // Geocodificar pedidos
+        val pedidosConUbicacion = geocodePedidos(pedidos)
 
-            // Incluir ubicación actual si existe
-            currentLocationMarker?.let { builder.include(it.position) }
+        // Volver al hilo principal para añadir marcadores
+        withContext(Dispatchers.Main) {
+            progressBar.visibility = View.GONE
 
-            val bounds = builder.build()
-            val padding = 150 // padding en pixels
-            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+            if (pedidosConUbicacion.isEmpty()) {
+                showToast("No se pudieron geocodificar las direcciones de los pedidos")
+                return@withContext
+            }
+
+            pedidosConUbicacion.forEach { pedidoConUbicacion ->
+                val pedido = pedidoConUbicacion.pedido
+                val location = pedidoConUbicacion.coordenadas
+
+                val markerColor = when (pedido.estado) {
+                    EstadoPedido.PENDIENTE -> BitmapDescriptorFactory.HUE_YELLOW
+                    EstadoPedido.PREPARADO -> BitmapDescriptorFactory.HUE_BLUE
+                    EstadoPedido.EN_REPARTO -> BitmapDescriptorFactory.HUE_ORANGE
+                    EstadoPedido.ENTREGADO -> BitmapDescriptorFactory.HUE_GREEN
+                }
+
+                val marker = map.addMarker(
+                    MarkerOptions()
+                        .position(location)
+                        .title("Pedido #${pedido.id}")
+                        .snippet("${pedido.getEstadoTexto()} - ${pedido.direccionEntrega}")
+                        .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
+                )
+                marker?.let { markers.add(it) }
+            }
+
+            // Ajustar cámara para mostrar todos los marcadores
+            if (markers.isNotEmpty()) {
+                val builder = LatLngBounds.Builder()
+                markers.forEach { builder.include(it.position) }
+
+                // Incluir ubicación actual si existe
+                currentLocationMarker?.let { builder.include(it.position) }
+
+                val bounds = builder.build()
+                val padding = 150
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+            }
+
+            // Calcular ruta óptima con las coordenadas reales
+            calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion)
         }
     }
 
     /**
      * Calcula la ruta optimizada usando Directions API
      */
-    private fun calculateOptimizedRoute(pedidos: List<Pedido>) {
-        if (pedidos.isEmpty()) return
+    private fun calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion: List<PedidoConUbicacion>) {
+        if (pedidosConUbicacion.isEmpty()) return
 
         progressBar.visibility = View.VISIBLE
 
         ioScope.launch {
             try {
                 // Obtener ubicación actual
-                val origin = getCurrentLocation() ?: return@launch
-
-                // Obtener coordenadas de todos los pedidos
-                val waypoints = pedidos.mapIndexed { index, _ ->
-                    getLocationForPedido(index)
+                val origin = getCurrentLocation() ?: run {
+                    withContext(Dispatchers.Main) {
+                        showToast("No se pudo obtener tu ubicación actual")
+                        progressBar.visibility = View.GONE
+                    }
+                    return@launch
                 }
+
+                // Extraer coordenadas de los pedidos
+                val waypoints = pedidosConUbicacion.map { it.coordenadas }
 
                 // Llamar a Directions API
                 val route = getDirectionsRoute(origin, waypoints)
@@ -359,6 +392,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
+
     }
 
     /**
@@ -519,22 +553,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         return poly
     }
 
-    /**
-     * Obtiene coordenadas de ejemplo para un pedido
-     * TODO: Reemplazar con Geocoding API real
-     */
-    private fun getLocationForPedido(index: Int): LatLng {
-        // Coordenadas de ejemplo en Madrid
-        val baseLocations = listOf(
-            LatLng(40.4168, -3.7038),  // Puerta del Sol
-            LatLng(40.4200, -3.7050),  // Gran Vía
-            LatLng(40.4230, -3.7100),  // Plaza España
-            LatLng(40.4250, -3.7150),  // Templo de Debod
-            LatLng(40.4280, -3.7180),  // Parque del Oeste
-        )
-        return baseLocations[index % baseLocations.size]
-    }
-
     private fun abrirGoogleMapsNavegacion() {
         val pedidos = (viewModel.pedidos.value as? NetworkResult.Success)?.data
         if (pedidos.isNullOrEmpty()) {
@@ -557,6 +575,18 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun getLocationForPedido(index: Int): LatLng {
+        // Coordenadas de ejemplo en Madrid
+        val baseLocations = listOf(
+            LatLng(40.4168, -3.7038),  // Puerta del Sol
+            LatLng(40.4200, -3.7050),  // Gran Vía
+            LatLng(40.4230, -3.7100),  // Plaza España
+            LatLng(40.4250, -3.7150),  // Templo de Debod
+            LatLng(40.4280, -3.7180),  // Parque del Oeste
+        )
+        return baseLocations[index % baseLocations.size]
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
@@ -566,7 +596,46 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onDestroy()
         ioScope.cancel()
     }
+
+    private suspend fun geocodePedidos(pedidos: List<Pedido>): List<PedidoConUbicacion> {
+        return withContext(Dispatchers.IO) {
+            pedidos.mapNotNull { pedido ->
+                // Validar que tenga dirección
+                if (!GeocodingHelper.isValidAddress(pedido.direccionEntrega)) {
+                    Log.w("RutaDetalle", "Pedido ${pedido.id} sin dirección válida")
+                    return@mapNotNull null
+                }
+
+                // Normalizar dirección (añadir ciudad/país si falta)
+                val direccionNormalizada = GeocodingHelper.normalizeAddress(
+                    pedido.direccionEntrega ?: "",
+                    ciudad = "Madrid",
+                    pais = "España"
+                )
+
+                // Geocodificar con cache
+                val coordinates = GeocodingHelper.getCoordinatesFromAddressWithCache(direccionNormalizada)
+
+                if (coordinates != null) {
+                    PedidoConUbicacion(
+                        pedido = pedido,
+                        coordenadas = coordinates
+                    )
+                } else {
+                    Log.e("RutaDetalle", "No se pudo geocodificar: $direccionNormalizada")
+                    null
+                }
+            }
+        }
+    }
+
 }
+private suspend fun guardarCoordenadasEnCache(pedidoId: Int, coordenadas: LatLng) {
+    // TODO: Implementar si quieres cache persistente
+    // Por ahora GeocodingHelper.geocodingCache hace el trabajo
+}
+
+
 
 /**
  * Data class para la ruta de Directions API
@@ -575,4 +644,9 @@ data class DirectionsRoute(
     val polyline: String,
     val distanceMeters: Int,
     val durationSeconds: Int
+)
+
+data class PedidoConUbicacion(
+    val pedido: Pedido,
+    val coordenadas: LatLng
 )

@@ -50,7 +50,9 @@ fun PedidoEntity.toResponse(): PedidoResponse {
         idRepartidor = this.idRepartidor,
         estado = this.estado,
         fechaPedido = this.fechaPedido,
-        fechaEntrega = this.fechaEntrega
+        fechaEntrega = this.fechaEntrega,
+        direccionEntrega = direccionEntrega,
+        notas = null
     )
 }
 
@@ -130,7 +132,33 @@ fun UbicacionRepartidorResponse.toEntity(idRepartidor: Int): UbicacionEntity {
         idRepartidor = idRepartidor,
         latitud = this.latitud,
         longitud = this.longitud,
-        fechaHora = this.fechaHora,
+        fechaHora = this.fechaHora?.takeIf { it.isNotBlank() }, // <- convierte "" en null
         synced = true
+    )
+}
+
+
+fun Pedido.toEntity(): PedidoEntity {
+    return PedidoEntity(
+        idPedido = this.id,
+        idCliente = this.idCliente,
+        idRepartidor = this.idRepartidor,
+        estado = this.estado.name.lowercase(),
+        fechaPedido = this.fechaPedido,
+        fechaEntrega = this.fechaEntrega,
+        nombreCliente = this.nombreCliente,
+        direccionEntrega = this.direccionEntrega,
+        telefonoCliente = this.telefonoCliente
+    )
+}
+
+fun Ruta.toEntity(): RutaEntity {
+    return RutaEntity(
+        idRuta = this.id,
+        idRepartidor = this.idRepartidor,
+        fechaRuta = this.fechaRuta,
+        distanciaEstimadaKm = this.distanciaEstimadaKm,
+        duracionEstimadaMin = this.duracionEstimadaMin,
+        estado = this.estado.name.lowercase()
     )
 }

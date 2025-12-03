@@ -39,7 +39,7 @@ data class UbicacionRepartidorResponse(
     val longitud: Double,
 
     @SerializedName("fechaHora")
-    val fechaHora: String
+    val fechaHora: String?=null
 )
 
 // Request para crear ubicación
@@ -47,7 +47,7 @@ data class CrearUbicacionRequest(
     val idRepartidor: Int,
     val latitud: Double,
     val longitud: Double,
-    val fechaHora: String = "" // Se enviará vacío, la API usa DateTime.Now
+    val fechaHora: String? = null // Se enviará vacío, la API usa DateTime.Now
 )
 
 // Request para actualizar ruta

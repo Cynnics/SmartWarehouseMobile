@@ -26,18 +26,50 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // 🔥 Flow de Room (pedidos del repartidor)
+    // 🔥 Flow de Room (pedidos según rol del usuario)
     private val _estadoFiltro = MutableLiveData<String>("todos")
 
     val pedidos: LiveData<List<Pedido>> = _estadoFiltro.switchMap { estado ->
-        if (estado == "todos") {
-            pedidoDao.getPedidosByRepartidor(authRepository.getUserId())
-                .map { it.map { it.toDomain() } }
-                .asLiveData(viewModelScope.coroutineContext)
-        } else {
-            pedidoDao.getPedidosByEstado(estado)
-                .map { it.map { it.toDomain() } }
-                .asLiveData(viewModelScope.coroutineContext)
+        val userRole = authRepository.getUserRole()
+        val userId = authRepository.getUserId()
+
+        when {
+            // Cliente: ver solo sus pedidos
+            userRole == "cliente" -> {
+                if (estado == "todos") {
+                    pedidoDao.getPedidosByCliente(userId)
+                        .map { it.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                } else {
+                    pedidoDao.getPedidosByEstado(estado)
+                        .map { it.filter { p -> p.idCliente == userId }.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                }
+            }
+            // Repartidor: ver pedidos asignados
+            userRole == "repartidor" -> {
+                if (estado == "todos") {
+                    pedidoDao.getPedidosByRepartidor(userId)
+                        .map { it.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                } else {
+                    pedidoDao.getPedidosByEstado(estado)
+                        .map { it.filter { p -> p.idRepartidor == userId }.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                }
+            }
+            // Admin/Empleado: ver todos
+            else -> {
+                if (estado == "todos") {
+                    pedidoDao.getAllPedidos()
+                        .map { it.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                } else {
+                    pedidoDao.getPedidosByEstado(estado)
+                        .map { it.map { entity -> entity.toDomain() } }
+                        .asLiveData(viewModelScope.coroutineContext)
+                }
+            }
         }
     }
 
@@ -51,15 +83,21 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
             _isLoading.value = true
 
             try {
-                // Sincronizar desde API
-                val result = pedidoRepository.getPedidosRepartidor()
+                val userRole = authRepository.getUserRole()
+
+                // Sincronizar según rol
+                val result = when (userRole) {
+                    "cliente" -> pedidoRepository.getPedidosCliente()
+                    "repartidor" -> pedidoRepository.getPedidosRepartidor()
+                    else -> pedidoRepository.getPedidos()
+                }
 
                 if (result is NetworkResult.Success) {
                     // Guardar en Room
                     val entities = result.data?.map { it.toEntity() } ?: emptyList()
                     entities.forEach { pedidoDao.insertPedido(it) }
 
-                    android.util.Log.d("PedidosVM", "Sincronizados ${entities.size} pedidos")
+                    android.util.Log.d("PedidosVM", "Sincronizados ${entities.size} pedidos para rol: $userRole")
                 } else if (result is NetworkResult.Error) {
                     android.util.Log.e("PedidosVM", "Error: ${result.message}")
                 }

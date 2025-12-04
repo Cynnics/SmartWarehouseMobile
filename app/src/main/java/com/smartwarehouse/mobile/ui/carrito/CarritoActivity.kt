@@ -2,6 +2,7 @@ package com.smartwarehouse.mobile.ui.carrito
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -16,6 +17,11 @@ import com.smartwarehouse.mobile.adapter.CarritoAdapter
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.showToast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
+
 
 class CarritoActivity : AppCompatActivity() {
 
@@ -29,7 +35,11 @@ class CarritoActivity : AppCompatActivity() {
     private lateinit var etNotas: EditText
     private lateinit var btnConfirmarPedido: Button
     private lateinit var progressBar: ProgressBar
-    private lateinit var emptyView: LinearLayout
+    private lateinit var emptyView: TextView
+    private lateinit var etCiudad: EditText
+    private lateinit var etCodigoPostal: EditText
+    private lateinit var btnCrearPedido: MaterialButton
+
 
     private val carritoAdapter = CarritoAdapter(
         onIncrementar = { idProducto ->
@@ -62,16 +72,20 @@ class CarritoActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        recyclerView = findViewById(R.id.recyclerCarrito)
+        recyclerView = findViewById(R.id.recyclerProductos)   // RecyclerView del carrito
         tvSubtotal = findViewById(R.id.tvSubtotal)
         tvIva = findViewById(R.id.tvIva)
         tvTotal = findViewById(R.id.tvTotal)
         etDireccion = findViewById(R.id.etDireccion)
+        etCiudad = findViewById(R.id.etCiudad)
+        etCodigoPostal = findViewById(R.id.etCodigoPostal)
         etNotas = findViewById(R.id.etNotas)
-        btnConfirmarPedido = findViewById(R.id.btnConfirmarPedido)
+        btnConfirmarPedido = findViewById(R.id.btnCrearPedido)
         progressBar = findViewById(R.id.progressBar)
-        emptyView = findViewById(R.id.emptyView)
+        emptyView = findViewById(R.id.tvCarritoVacio)        // Mensaje "carrito vacío"
+        btnCrearPedido = findViewById(R.id.btnCrearPedido)
     }
+
 
     private fun setupRecyclerView() {
         recyclerView.apply {
@@ -128,20 +142,23 @@ class CarritoActivity : AppCompatActivity() {
     }
 
     private fun mostrarVistaVacia() {
-        emptyView.visibility = View.VISIBLE
+        emptyView.visibility = View.VISIBLE        // Muestra mensaje "carrito vacío"
         recyclerView.visibility = View.GONE
-        findViewById<View>(R.id.cardResumen).visibility = View.GONE
-        findViewById<View>(R.id.cardDireccion).visibility = View.GONE
+        tvSubtotal.visibility = View.GONE
+        tvIva.visibility = View.GONE
+        tvTotal.visibility = View.GONE
         btnConfirmarPedido.visibility = View.GONE
     }
 
     private fun mostrarVistaConItems() {
         emptyView.visibility = View.GONE
         recyclerView.visibility = View.VISIBLE
-        findViewById<View>(R.id.cardResumen).visibility = View.VISIBLE
-        findViewById<View>(R.id.cardDireccion).visibility = View.VISIBLE
+        tvSubtotal.visibility = View.VISIBLE
+        tvIva.visibility = View.VISIBLE
+        tvTotal.visibility = View.VISIBLE
         btnConfirmarPedido.visibility = View.VISIBLE
     }
+
 
     private fun confirmarEliminar(idProducto: Int) {
         AlertDialog.Builder(this)
@@ -157,23 +174,49 @@ class CarritoActivity : AppCompatActivity() {
 
     private fun confirmarPedido() {
         val direccion = etDireccion.text.toString().trim()
+        val ciudad = etCiudad.text.toString().trim()
+        val codigoPostal = etCodigoPostal.text.toString().trim()
         val notas = etNotas.text.toString().trim().ifBlank { null }
 
-        if (direccion.isBlank()) {
-            etDireccion.error = "La dirección es obligatoria"
-            etDireccion.requestFocus()
-            return
-        }
+        // Validaciones
+        if (direccion.isBlank()) { showToast("La dirección es obligatoria"); return }
+        if (ciudad.isBlank()) { showToast("La ciudad es obligatoria"); return }
+        if (codigoPostal.isBlank()) { showToast("El código postal es obligatorio"); return }
+        if (viewModel.carrito.isEmpty()) { showToast("El carrito está vacío"); return }
+
 
         AlertDialog.Builder(this)
             .setTitle("Confirmar Pedido")
-            .setMessage("¿Deseas confirmar este pedido?\n\nTotal: ${tvTotal.text}")
-            .setPositiveButton("Confirmar") { _, _ ->
-                viewModel.crearPedido(direccion, notas)
+            .setMessage("¿Deseas crear el pedido con la dirección ingresada?")
+            .setPositiveButton("Sí") { _, _ ->
+                btnCrearPedido.isEnabled = false
+                lifecycleScope.launch {
+                    try {
+                        val (lat, lng) = viewModel.calcularCoordenadasSuspend(
+                            direccion, ciudad, codigoPostal
+                        )
+                        viewModel.setDireccion(direccion)
+                        viewModel.setCiudad(ciudad)
+                        viewModel.setCodigoPostal(codigoPostal)
+                        viewModel.setNotas(notas)
+                        viewModel.setLatitud(lat)
+                        viewModel.setLongitud(lng)
+                        Log.d("Pedido", "Creando pedido con direccion: '$direccion'")
+                        // Crear pedido
+                        viewModel.crearPedido()
+
+                    } finally {
+                        btnCrearPedido.isEnabled = true // reactivar botón
+
+                    }
+
+                }
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+                    .setNegativeButton("No", null)
+                    .show()
+
     }
+
 
     private fun mostrarDialogoExito() {
         AlertDialog.Builder(this)

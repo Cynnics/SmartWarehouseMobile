@@ -72,6 +72,31 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
+    // Obtener pedidos del cliente actual
+    suspend fun getPedidosCliente(): NetworkResult<List<Pedido>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = pedidoService.getPedidos()
+
+                if (response.isSuccessful) {
+                    val idCliente = sessionManager.getUserId()
+                    val pedidos = response.body()
+                        ?.filter { it.idCliente == idCliente }
+                        ?.map { it.toDomain() }
+                        ?: emptyList()
+
+                    android.util.Log.d("PedidoRepo", "Pedidos del cliente $idCliente: ${pedidos.size}")
+
+                    NetworkResult.Success(pedidos)
+                } else {
+                    NetworkResult.Error("Error al obtener pedidos del cliente")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error("Error: ${e.localizedMessage}")
+            }
+        }
+    }
+
     // Obtener pedidos del repartidor actual
     suspend fun getPedidosRepartidor(): NetworkResult<List<Pedido>> {
         return withContext(Dispatchers.IO) {

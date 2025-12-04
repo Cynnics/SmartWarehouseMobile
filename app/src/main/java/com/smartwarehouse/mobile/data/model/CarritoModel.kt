@@ -62,18 +62,3 @@ data class Carrito(
 
     fun isEmpty(): Boolean = items.isEmpty()
 }
-
-// Request para crear pedido
-data class CrearPedidoRequest(
-    val idCliente: Int,
-    val items: List<ItemPedidoRequest>,
-    val direccionEntrega: String? = null,
-    val notas: String? = null,
-    val estado: String
-)
-
-data class ItemPedidoRequest(
-    val idProducto: Int,
-    val cantidad: Int,
-    val subtotal: Double
-)

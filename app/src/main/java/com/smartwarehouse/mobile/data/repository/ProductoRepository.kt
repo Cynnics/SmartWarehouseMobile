@@ -7,6 +7,8 @@ import com.smartwarehouse.mobile.data.api.ProductoService
 import com.smartwarehouse.mobile.data.model.Carrito
 import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.ItemPedidoRequest
+import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
+import com.smartwarehouse.mobile.data.model.response.PedidoResponse
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
@@ -25,7 +27,9 @@ class ProductoRepository(private val context: Context) {
         val carrito = Carrito()
     }
 
-    // Obtener todos los productos
+    // ============================================================
+    // OBTENER PRODUCTOS
+    // ============================================================
     suspend fun getProductos(): NetworkResult<List<ProductoResponse>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -68,11 +72,18 @@ class ProductoRepository(private val context: Context) {
         return productos.mapNotNull { it.categoria }.distinct().sorted()
     }
 
-    // Crear pedido desde el carrito
+    // ============================================================
+    // CREAR PEDIDO COMPLETO (Pedido + Detalles)
+    // ============================================================
     suspend fun crearPedido(
-        direccionEntrega: String,
-        notas: String?
+        direccion: String,
+        ciudad: String,
+        codigoPostal: String,
+        notas: String?,
+        latitud: Double?,
+        longitud: Double?
     ): NetworkResult<Boolean> {
+
         return withContext(Dispatchers.IO) {
             try {
                 if (carrito.isEmpty()) {
@@ -81,33 +92,42 @@ class ProductoRepository(private val context: Context) {
 
                 val idCliente = sessionManager.getUserId()
 
-                // 1. Crear el pedido
-                val pedidoRequest = CrearPedidoRequest(
+                // -----------------------------
+                // 1) Crear pedido
+                // -----------------------------
+                val request = CrearPedidoRequest(
                     idCliente = idCliente,
-                    items = carrito.items.map { item ->
+                    items = carrito.items.map {
                         ItemPedidoRequest(
-                            idProducto = item.producto.idProducto,
-                            cantidad = item.cantidad,
-                            subtotal = item.getSubtotal()
+                            idProducto = it.producto.idProducto,
+                            cantidad = it.cantidad,
+                            subtotal = it.getSubtotal()
                         )
                     },
-                    direccionEntrega = direccionEntrega,
-                    notas = notas
+                    direccion = direccion,
+                    ciudad = ciudad,
+                    codigoPostal = codigoPostal,
+                    notas = notas,
+                    latitud = latitud,
+                    longitud = longitud,
+                    estado = "Pendiente"
                 )
 
-
-                val pedidoResponse = pedidoService.crearPedido(pedidoRequest)
+                val pedidoResponse = pedidoService.crearPedido(request)
 
                 if (!pedidoResponse.isSuccessful) {
                     return@withContext NetworkResult.Error("Error al crear el pedido")
                 }
 
                 val pedidoCreado = pedidoResponse.body()
-                    ?: return@withContext NetworkResult.Error("Error: respuesta vacía")
+                    ?: return@withContext NetworkResult.Error("Respuesta del servidor vacía")
 
-                // 2. Crear los detalles del pedido
+                // -----------------------------
+                // 2) Crear detalles del pedido
+                // -----------------------------
                 for (item in carrito.items) {
-                    val detalle = com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse(
+
+                    val detalle = DetallePedidoResponse(
                         idDetalle = 0,
                         idPedido = pedidoCreado.idPedido,
                         idProducto = item.producto.idProducto,
@@ -115,16 +135,16 @@ class ProductoRepository(private val context: Context) {
                         subtotal = item.getSubtotal()
                     )
 
-                    val detalleResponse = pedidoService.crearDetallePedido(detalle)
+                    val detalleResp = pedidoService.crearDetallePedido(detalle)
 
-                    if (!detalleResponse.isSuccessful) {
-                        // Si falla algún detalle, el pedido ya está creado
-                        // Idealmente deberías revertir, pero por simplicidad continuamos
+                    if (!detalleResp.isSuccessful) {
                         android.util.Log.e("ProductoRepository", "Error al crear detalle del pedido")
                     }
                 }
 
-                // 3. Vaciar el carrito después de crear el pedido
+                // -----------------------------
+                // 3) Vaciar carrito
+                // -----------------------------
                 carrito.vaciar()
 
                 NetworkResult.Success(true)

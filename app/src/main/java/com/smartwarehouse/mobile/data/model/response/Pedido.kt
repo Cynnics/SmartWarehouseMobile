@@ -202,13 +202,19 @@ fun PedidoResponse.toDomain(): Pedido {
     )
 }
 
+
 data class CrearPedidoRequest(
     val idCliente: Int,
     val items: List<ItemPedidoRequest>,
-    val direccionEntrega: String,
-    val notas: String? = null,
-    val estado: String = "pendiente"
+    @SerializedName("DireccionEntrega") val direccion: String,
+    val ciudad: String,
+    val codigoPostal: String,
+    val notas: String?,
+    val latitud: Double?,
+    val longitud: Double?,
+    val estado: String
 )
+
 
 data class ItemPedidoRequest(
     val idProducto: Int,

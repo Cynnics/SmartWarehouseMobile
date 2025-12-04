@@ -15,6 +15,10 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.service.LocationTrackingService
 import com.smartwarehouse.mobile.service.MockLocationService
 import com.smartwarehouse.mobile.utils.showToast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TrackingControlActivity : AppCompatActivity() {
 
@@ -54,7 +58,7 @@ class TrackingControlActivity : AppCompatActivity() {
         initializeViews()
         setupListeners()
         checkLocationPermission()
-        updateUI()
+        updateUIInitial()
     }
 
     private fun setupToolbar() {
@@ -75,20 +79,49 @@ class TrackingControlActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        /*
         btnIniciarTracking.setOnClickListener {
-            if (checkLocationPermission()) {
+            if (!canStartTracking()) {
+                showToast("Se necesitan permisos de ubicación y Foreground Service")
+                return@setOnClickListener
+            }
+
+            val anyActive = LocationTrackingService.isTracking || MockLocationService.isMocking
+            if (anyActive) {
+                showToast("El tracking ya está activo")
+                return@setOnClickListener
+            }
+
+            if (switchModoSimulacion.isChecked) {
+                MockLocationService.startMocking(this)
+                showToast("🧪 Simulación GPS iniciada")
+            } else {
+                LocationTrackingService.startTracking(this)
+                showToast("📍 Tracking GPS iniciado")
+            }
+
+            updateUI()
+        }*/
+
+        btnIniciarTracking.setOnClickListener {
+            if (!canStartTracking()) return@setOnClickListener
+
+            CoroutineScope(Dispatchers.IO).launch {
                 if (switchModoSimulacion.isChecked) {
-                    // Iniciar simulación
-                    MockLocationService.Companion.startMocking(this)
-                    showToast("🧪 Simulación GPS iniciada")
+                    MockLocationService.startMocking(this@TrackingControlActivity)
                 } else {
-                    // Iniciar tracking real
-                    LocationTrackingService.Companion.startTracking(this)
-                    showToast("📍 Tracking GPS iniciado")
+                    LocationTrackingService.startTracking(this@TrackingControlActivity)
                 }
-                updateUI()
+
+                withContext(Dispatchers.Main) {
+                    showToast("Tracking iniciado")
+                    updateUI()
+                }
             }
         }
+
+
+
 
         btnDetenerTracking.setOnClickListener {
             if (MockLocationService.Companion.isMocking) {
@@ -115,19 +148,30 @@ class TrackingControlActivity : AppCompatActivity() {
         }
     }
 
+    private fun canStartTracking(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.FOREGROUND_SERVICE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
+
     private fun checkLocationPermission(): Boolean {
         return when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED -> {
                 true
             }
             else -> {
                 locationPermissionRequest.launch(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.FOREGROUND_SERVICE_LOCATION
                     )
                 )
                 false
@@ -177,9 +221,23 @@ class TrackingControlActivity : AppCompatActivity() {
 
         // Botones
         val isAnyServiceActive = LocationTrackingService.Companion.isTracking || MockLocationService.Companion.isMocking
-        btnIniciarTracking.isEnabled = !isAnyServiceActive
+        btnIniciarTracking.isEnabled = false
+        if (switchModoSimulacion.isChecked) {
+            MockLocationService.startMocking(this)
+        } else {
+            LocationTrackingService.startTracking(this)
+        }
+        updateUI()
+
         btnDetenerTracking.isEnabled = isAnyServiceActive
     }
+
+    private fun updateUIInitial() {
+        tvEstadoTracking.text = "Desconocido"
+        tvEstadoMock.text = "Desconocido"
+        tvUltimaUbicacion.text = "Desconocida"
+    }
+
 
     override fun onResume() {
         super.onResume()

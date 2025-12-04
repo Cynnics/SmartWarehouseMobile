@@ -288,9 +288,9 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             abrirGoogleMapsNavegacion()
         }
         btnIniciarTracking.setOnClickListener {
-            val intent = Intent(this, TrackingControlActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, TrackingControlActivity::class.java))
         }
+
     }
     /**
      * Añade marcadores en el mapa para cada pedido

@@ -41,16 +41,32 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    init {
+        // Sincronizar al iniciar
+        sincronizarPedidos()
+    }
+
     fun sincronizarPedidos() {
         viewModelScope.launch {
             _isLoading.value = true
-            // Sincronizar desde API
-            val result = pedidoRepository.getPedidosRepartidor()
 
-            if (result is NetworkResult.Success) {
-                // Guardar en Room
-                val entities = result.data?.map { it.toEntity() } ?: emptyList()
-                entities.forEach { pedidoDao.insertPedido(it) }
+            try {
+                // Sincronizar desde API
+                val result = pedidoRepository.getPedidosRepartidor()
+
+                if (result is NetworkResult.Success) {
+                    // Guardar en Room
+                    val entities = result.data?.map { it.toEntity() } ?: emptyList()
+                    entities.forEach { pedidoDao.insertPedido(it) }
+
+                    android.util.Log.d("PedidosVM", "Sincronizados ${entities.size} pedidos")
+                } else if (result is NetworkResult.Error) {
+                    android.util.Log.e("PedidosVM", "Error: ${result.message}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PedidosVM", "Error al sincronizar", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

@@ -23,11 +23,26 @@ class PedidoRepository(private val context: Context) {
 
                 if (response.isSuccessful) {
                     val pedidos = response.body()?.map { it.toDomain() } ?: emptyList()
+
+                    // 🔥 LOG DETALLADO
+                    android.util.Log.d("PedidoRepo", "Pedidos obtenidos: ${pedidos.size}")
+                    pedidos.forEach { pedido ->
+                        android.util.Log.d("PedidoRepo", """
+                            Pedido #${pedido.id}
+                            - Dirección: ${pedido.direccionEntrega}
+                            - Ciudad: ${pedido.ciudad}
+                            - CP: ${pedido.codigoPostal}
+                            - Coords: ${pedido.latitud}, ${pedido.longitud}
+                        """.trimIndent())
+                    }
+
                     NetworkResult.Success(pedidos)
                 } else {
+                    android.util.Log.e("PedidoRepo", "Error HTTP: ${response.code()}")
                     NetworkResult.Error("Error al obtener pedidos: ${response.code()}")
                 }
             } catch (e: Exception) {
+                android.util.Log.e("PedidoRepo", "Error de red", e)
                 NetworkResult.Error(
                     when (e) {
                         is java.net.UnknownHostException -> "Sin conexión a internet"

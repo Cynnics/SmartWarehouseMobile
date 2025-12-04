@@ -93,19 +93,23 @@ class PedidosActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
+        // 🔥 Observer de pedidos (desde Room)
         viewModel.pedidos.observe(this) { pedidos ->
+            android.util.Log.d("PedidosActivity", "Pedidos recibidos: ${pedidos.size}")
+
             pedidoAdapter.submitList(pedidos)
 
             if (pedidos.isEmpty()) {
                 emptyView.visibility = View.VISIBLE
                 recyclerView.visibility = View.GONE
+                emptyView.text = "No hay pedidos disponibles"
             } else {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
             }
         }
 
-
+        // 🔥 Observer de loading
         viewModel.isLoading.observe(this) { isLoading ->
             swipeRefresh.isRefreshing = isLoading
             progressBar.visibility = if (isLoading && pedidoAdapter.itemCount == 0) {

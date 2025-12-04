@@ -5,11 +5,17 @@
     <!-- Permisos -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Permisos de ubicación -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Permiso para servicio en foreground (Android 9+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Permiso específico para tracking de ubicación (Android 10+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Permiso para notificaciones (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Para que la app pueda ejecutarse en background -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="true"
@@ -94,13 +100,14 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Servicios de Tracking GPS -->
+        <!-- Servicio de tracking real -->
         <service
             android:name=".service.LocationTrackingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <!-- Servicio de tracking simulado -->
         <service
             android:name=".service.MockLocationService"
             android:enabled="true"

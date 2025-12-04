@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.DetallePedidoAdapter
 import com.smartwarehouse.mobile.utils.NetworkResult
@@ -55,7 +56,9 @@ class PedidoDetalleActivity : AppCompatActivity() {
             return
         }
 
-        setupToolbar()
+        var toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         initializeViews()
         setupRecyclerView()
         setupObservers()
@@ -64,13 +67,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
         viewModel.cargarPedido(idPedido)
         viewModel.cargarDetalles(idPedido)
         viewModel.cargarTotales(idPedido)
-    }
-
-    private fun setupToolbar() {
-        supportActionBar?.apply {
-            title = "Detalle del Pedido"
-            setDisplayHomeAsUpEnabled(true)
-        }
     }
 
     private fun initializeViews() {

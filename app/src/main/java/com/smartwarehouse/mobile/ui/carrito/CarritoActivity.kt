@@ -19,6 +19,7 @@ import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.showToast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
@@ -56,19 +57,14 @@ class CarritoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_carrito)
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        setupToolbar()
         initializeViews()
         setupRecyclerView()
         setupObservers()
         setupListeners()
-    }
-
-    private fun setupToolbar() {
-        supportActionBar?.apply {
-            title = "Mi Carrito"
-            setDisplayHomeAsUpEnabled(true)
-        }
     }
 
     private fun initializeViews() {

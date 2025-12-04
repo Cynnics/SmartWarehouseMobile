@@ -58,19 +58,12 @@ class CatalogoActivity : AppCompatActivity() {
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        //setupToolbar()
         initializeViews()
         setupRecyclerView()
         setupObservers()
         setupListeners()
     }
 
-    private fun setupToolbar() {
-        supportActionBar?.apply {
-            title = "Catálogo de Productos"
-            setDisplayHomeAsUpEnabled(true)
-        }
-    }
 
     private fun initializeViews() {
         searchView = findViewById(R.id.searchView)

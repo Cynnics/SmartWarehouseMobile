@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -145,23 +146,32 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(madrid, 12f))
     }
 
-    private fun checkLocationPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                enableMyLocation()
-            }
-            else -> {
-                locationPermissionRequest.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-                )
-            }
+    private fun checkLocationPermission(): Boolean {
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        // Añadir permiso de foreground service si es necesario
+        if (Build   .VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissions.add(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
         }
+
+        // Añadir permiso de notificaciones si es necesario
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val allGranted = permissions.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (!allGranted) {
+            locationPermissionRequest.launch(permissions.toTypedArray())
+            return false
+        }
+
+        return true
     }
 
     private fun enableMyLocation() {

@@ -2,6 +2,7 @@ package com.smartwarehouse.mobile.tracking
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Switch
@@ -35,15 +36,25 @@ class TrackingControlActivity : AppCompatActivity() {
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
+        val fineLocation = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseLocation = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        val foregroundService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissions[Manifest.permission.FOREGROUND_SERVICE_LOCATION] ?: false
+        } else {
+            true
+        }
+
         when {
-            permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                showToast("Permisos de ubicación concedidos")
+            fineLocation && foregroundService -> {
+                showToast("✅ Permisos concedidos")
+                updateUI()
             }
-            permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                showToast("Permiso de ubicación aproximada concedido")
+            coarseLocation -> {
+                showToast("⚠️ Solo ubicación aproximada concedida")
+                updateUI()
             }
             else -> {
-                showToast("Permisos de ubicación denegados")
+                showToast("❌ Permisos de ubicación denegados")
             }
         }
     }
@@ -79,19 +90,21 @@ class TrackingControlActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        /*
+
         btnIniciarTracking.setOnClickListener {
             if (!canStartTracking()) {
                 showToast("Se necesitan permisos de ubicación y Foreground Service")
                 return@setOnClickListener
             }
 
+            // Verificar que no haya tracking activo
             val anyActive = LocationTrackingService.isTracking || MockLocationService.isMocking
             if (anyActive) {
                 showToast("El tracking ya está activo")
                 return@setOnClickListener
             }
 
+            // Iniciar servicio según modo
             if (switchModoSimulacion.isChecked) {
                 MockLocationService.startMocking(this)
                 showToast("🧪 Simulación GPS iniciada")
@@ -100,28 +113,11 @@ class TrackingControlActivity : AppCompatActivity() {
                 showToast("📍 Tracking GPS iniciado")
             }
 
-            updateUI()
-        }*/
-
-        btnIniciarTracking.setOnClickListener {
-            if (!canStartTracking()) return@setOnClickListener
-
-            CoroutineScope(Dispatchers.IO).launch {
-                if (switchModoSimulacion.isChecked) {
-                    MockLocationService.startMocking(this@TrackingControlActivity)
-                } else {
-                    LocationTrackingService.startTracking(this@TrackingControlActivity)
-                }
-
-                withContext(Dispatchers.Main) {
-                    showToast("Tracking iniciado")
-                    updateUI()
-                }
-            }
+            // Actualizar UI después de un pequeño delay
+            btnIniciarTracking.postDelayed({
+                updateUI()
+            }, 500)
         }
-
-
-
 
         btnDetenerTracking.setOnClickListener {
             if (MockLocationService.Companion.isMocking) {
@@ -149,14 +145,27 @@ class TrackingControlActivity : AppCompatActivity() {
     }
 
     private fun canStartTracking(): Boolean {
-        return ContextCompat.checkSelfPermission(
+        val fineLocation = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.FOREGROUND_SERVICE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val foregroundService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // No se requiere en versiones anteriores
+        }
+
+        if (!fineLocation || !foregroundService) {
+            showToast("⚠️ Faltan permisos necesarios")
+            checkLocationPermission() // Solicitar permisos
+            return false
+        }
+
+        return true
     }
 
 
@@ -206,30 +215,27 @@ class TrackingControlActivity : AppCompatActivity() {
 
     private fun updateUI() {
         // Estado del tracking real
-        tvEstadoTracking.text = if (LocationTrackingService.Companion.isTracking) {
+        tvEstadoTracking.text = if (LocationTrackingService.isTracking) {
             "✅ ACTIVO - Enviando ubicación real"
         } else {
             "❌ INACTIVO"
         }
 
         // Estado de la simulación
-        tvEstadoMock.text = if (MockLocationService.Companion.isMocking) {
+        tvEstadoMock.text = if (MockLocationService.isMocking) {
             "✅ ACTIVO - Enviando ubicación simulada"
         } else {
             "❌ INACTIVO"
         }
 
-        // Botones
-        val isAnyServiceActive = LocationTrackingService.Companion.isTracking || MockLocationService.Companion.isMocking
-        btnIniciarTracking.isEnabled = false
-        if (switchModoSimulacion.isChecked) {
-            MockLocationService.startMocking(this)
-        } else {
-            LocationTrackingService.startTracking(this)
-        }
-        updateUI()
+        // Habilitar/deshabilitar botones
+        val isAnyServiceActive = LocationTrackingService.isTracking || MockLocationService.isMocking
 
+        btnIniciarTracking.isEnabled = !isAnyServiceActive
         btnDetenerTracking.isEnabled = isAnyServiceActive
+
+        // Deshabilitar switch mientras hay tracking activo
+        switchModoSimulacion.isEnabled = !isAnyServiceActive
     }
 
     private fun updateUIInitial() {

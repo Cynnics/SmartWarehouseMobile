@@ -6,7 +6,11 @@
         <item name="colorAccent">#FF9800</item>
         <item name="android:statusBarColor">#1565C0</item>
         <item name="android:windowBackground">#E3F2FD</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:fitsSystemWindows">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:forceDarkAllowed">false</item>
+
     </style>
-
-
 </resources>

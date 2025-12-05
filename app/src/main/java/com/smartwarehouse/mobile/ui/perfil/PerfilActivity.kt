@@ -6,40 +6,33 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.domain.model.Usuario
 import com.smartwarehouse.mobile.ui.login.LoginActivity
+import com.smartwarehouse.mobile.ui.main.MainViewModel
+import kotlin.getValue
 
 class PerfilActivity : AppCompatActivity() {
 
-    private lateinit var usuario: Usuario
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
 
         val imgPerfil = findViewById<ImageView>(R.id.imgPerfil)
-        val tvNombre = findViewById<TextView>(R.id.tvNombre)
-        val tvCorreo = findViewById<TextView>(R.id.tvCorreo)
-        val tvRol = findViewById<TextView>(R.id.tvRol)
-        val tvTelefono = findViewById<TextView>(R.id.tvTelefono)
         val btnEditar = findViewById<Button>(R.id.btnEditar)
         val btnCerrar = findViewById<Button>(R.id.btnCerrarSesion)
 
-        // 🔹 Simulamos datos del usuario logueado
-        usuario = Usuario(
-            id = 1,
-            nombre = "Juan Pérez",
-            correo = "juanperez@empresa.com",
-            rol = "Repartidor",
-            telefono = "+34 600 123 456"
-        )
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
-        tvNombre.text = usuario.nombre
-        tvCorreo.text = usuario.correo
-        tvRol.text = usuario.rol
-        tvTelefono.text = "Teléfono: ${usuario.telefono}"
+        findViewById<TextView>(R.id.tvNombre).text = prefs.getString("nombre", "Sin nombre")
+        findViewById<TextView>(R.id.tvCorreo).text = prefs.getString("email", "Sin correo")
+        findViewById<TextView>(R.id.tvRol).text = prefs.getString("rol", "Sin rol")
+        findViewById<TextView>(R.id.tvTelefono).text = "Teléfono: " + prefs.getString("telefono", "No disponible")
+
 
         btnEditar.setOnClickListener {
             // En el futuro abrirá EditarPerfilActivity
@@ -47,10 +40,16 @@ class PerfilActivity : AppCompatActivity() {
         }
 
         btnCerrar.setOnClickListener {
+            val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+            prefs.edit().clear().apply() // 🔥 Limpia la sesión
+
+            viewModel.logout()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+            finish()
         }
+
     }
 
     private fun showToast(mensaje: String) {

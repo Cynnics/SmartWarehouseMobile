@@ -23,6 +23,40 @@
             android:textColor="@color/text_primary"
             android:layout_marginBottom="24dp"/>
 
+        <!-- MAPA EN TIEMPO REAL -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Mapa de Google Maps -->
+                <fragment
+                    android:id="@+id/mapFragment"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+                <!-- Contador de actualizaciones -->
+                <TextView
+                    android:id="@+id/tvActualizaciones"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Actualizaciones: 0"
+                    android:background="#99000000"
+                    android:textColor="#FFFFFF"
+                    android:padding="8dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"/>
+
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Card de Estado del Tracking Real -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

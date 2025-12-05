@@ -48,6 +48,18 @@ class LoginActivity : AppCompatActivity() {
         viewModel.loginResult.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
+                    val usuario = result.data?.usuario
+
+                    if (usuario != null) {
+                        // 🔥 Guardar datos del usuario
+                        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                        prefs.edit()
+                            .putString("nombre", usuario.nombre)
+                            .putString("email", usuario.email)
+                            .putString("rol", usuario.rol)
+                            .putString("telefono", usuario.telefono)
+                            .apply()
+                    }
                     Toast.makeText(this, "Bienvenido ${result.data?.usuario?.nombre}", Toast.LENGTH_SHORT).show()
                     navigateToMain()
                 }

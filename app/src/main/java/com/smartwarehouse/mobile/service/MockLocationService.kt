@@ -11,6 +11,7 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.repository.RutaRepository
 import com.smartwarehouse.mobile.ui.main.MainActivity
 import kotlinx.coroutines.*
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 /**
  * Servicio para simular movimiento GPS a lo largo de una ruta
@@ -30,7 +31,10 @@ class MockLocationService : Service() {
         var isMocking = false
             private set
 
-        fun startMocking(context: Context) {
+        private var dynamicRoute: List<LatLng>? = null
+
+        fun startMocking(context: Context, route: List<LatLng>? = null) {
+            dynamicRoute = route
             val intent = Intent(context, MockLocationService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -46,7 +50,7 @@ class MockLocationService : Service() {
     }
 
     // Ruta simulada (ejemplo: ruta por Madrid)
-    private val mockRoute = listOf(
+    private val defaultMockRoute  = listOf(
         LatLng(40.4168, -3.7038),  // Puerta del Sol
         LatLng(40.4200, -3.7050),  // Gran Vía
         LatLng(40.4230, -3.7100),  // Plaza España
@@ -58,6 +62,7 @@ class MockLocationService : Service() {
     )
 
     private var currentIndex = 0
+    private lateinit var mockRoute: List<LatLng>
 
     override fun onCreate() {
         super.onCreate()
@@ -66,6 +71,11 @@ class MockLocationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        mockRoute = dynamicRoute ?: defaultMockRoute
+
+        android.util.Log.d("MockLocation", "Iniciando simulación con ${mockRoute.size} puntos")
+
         startForeground(NOTIFICATION_ID, createNotification())
         startMockingLocations()
         isMocking = true
@@ -82,6 +92,13 @@ class MockLocationService : Service() {
                         latitud = currentLocation.latitude,
                         longitud = currentLocation.longitude
                     )
+
+                    // 🔥 ENVIAR BROADCAST LOCAL PARA ACTUALIZAR UI
+                    val intent = Intent("LOCATION_UPDATE")
+                    intent.putExtra("latitude", currentLocation.latitude)
+                    intent.putExtra("longitude", currentLocation.longitude)
+                    intent.putExtra("isMock", true)
+                    LocalBroadcastManager.getInstance(this@MockLocationService).sendBroadcast(intent)
 
                     android.util.Log.d("MockLocation",
                         "Ubicación simulada enviada: ${currentLocation.latitude}, ${currentLocation.longitude}")
@@ -152,6 +169,7 @@ class MockLocationService : Service() {
         simulationJob?.cancel()
         serviceScope.cancel()
         isMocking = false
+        dynamicRoute = null
         android.util.Log.d("MockLocation", "Simulación de GPS detenida")
     }
 

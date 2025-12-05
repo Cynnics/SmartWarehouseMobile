@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.*
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.model.response.EstadoPedido
 import com.smartwarehouse.mobile.data.model.response.Pedido
+import com.smartwarehouse.mobile.service.MockLocationService
 import com.smartwarehouse.mobile.tracking.TrackingControlActivity
 import com.smartwarehouse.mobile.utils.Constants
 import com.smartwarehouse.mobile.utils.GeocodingHelper
@@ -296,6 +297,9 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnNavegar.setOnClickListener {
             abrirGoogleMapsNavegacion()
+        }
+        findViewById<Button>(R.id.btnIniciarSimulacion).setOnClickListener {
+            iniciarSimulacionConRutaReal()
         }
         btnIniciarTracking.setOnClickListener {
             startActivity(Intent(this, TrackingControlActivity::class.java))
@@ -662,7 +666,115 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
     }
+    private fun iniciarSimulacionConRutaReal() {
+        val pedidos = (viewModel.pedidos.value as? NetworkResult.Success)?.data
 
+        if (pedidos.isNullOrEmpty()) {
+            showToast("No hay pedidos en la ruta para simular")
+            return
+        }
+
+        progressBar.visibility = View.VISIBLE
+
+        ioScope.launch {
+            try {
+                // 1. Obtener ubicación actual
+                val origin = getCurrentLocation() ?: run {
+                    withContext(Dispatchers.Main) {
+                        showToast("No se pudo obtener tu ubicación actual")
+                        progressBar.visibility = View.GONE
+                    }
+                    return@launch
+                }
+
+                // 2. Geocodificar pedidos si es necesario
+                val pedidosConUbicacion = mutableListOf<PedidoConUbicacion>()
+
+                for (pedido in pedidos) {
+                    if (pedido.tieneCoordenadasValidas()) {
+                        pedidosConUbicacion.add(
+                            PedidoConUbicacion(pedido, pedido.getLatLng()!!)
+                        )
+                    } else {
+                        val coords = GeocodingHelper.getCoordinatesFromAddressWithCache(
+                            GeocodingHelper.normalizeAddress(pedido.direccionEntrega ?: "")
+                        )
+                        if (coords != null) {
+                            pedidosConUbicacion.add(PedidoConUbicacion(pedido, coords))
+                        }
+                    }
+                }
+
+                if (pedidosConUbicacion.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        showToast("No se pudieron obtener las ubicaciones")
+                        progressBar.visibility = View.GONE
+                    }
+                    return@launch
+                }
+
+                // 3. Obtener ruta de Directions API
+                val waypoints = pedidosConUbicacion.map { it.coordenadas }
+                val route = getDirectionsRoute(origin, waypoints)
+
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+
+                    if (route != null) {
+                        // 4. Decodificar polyline en puntos
+                        val routePoints = decodePolyline(route.polyline)
+
+                        // 5. Interpolar puntos (para que la simulación sea más suave)
+                        val interpolatedPoints = interpolateRoute(routePoints, 50)
+
+                        // 6. Iniciar simulación con estos puntos
+                        MockLocationService.startMocking(this@RutaDetalleActivity, interpolatedPoints)
+
+                        showToast("🧪 Simulación iniciada con ruta real (${interpolatedPoints.size} puntos)")
+
+                        // 7. Abrir TrackingControlActivity
+                        val intent = Intent(this@RutaDetalleActivity, TrackingControlActivity::class.java)
+                        startActivity(intent)
+                    } else {
+                        showToast("No se pudo calcular la ruta")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("RutaDetalle", "Error al iniciar simulación", e)
+                    showToast("Error: ${e.message}")
+                    progressBar.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    /**
+     * Interpola puntos en una ruta para simulación más suave
+     */
+    private fun interpolateRoute(points: List<LatLng>, targetPoints: Int): List<LatLng> {
+        if (points.size >= targetPoints) return points
+
+        val result = mutableListOf<LatLng>()
+
+        for (i in 0 until points.size - 1) {
+            val start = points[i]
+            val end = points[i + 1]
+
+            // Calcular cuántos puntos interpolar entre estos dos
+            val steps = targetPoints / (points.size - 1)
+
+            for (step in 0 until steps) {
+                val fraction = step.toDouble() / steps
+                val lat = start.latitude + (end.latitude - start.latitude) * fraction
+                val lng = start.longitude + (end.longitude - start.longitude) * fraction
+                result.add(LatLng(lat, lng))
+            }
+        }
+
+        result.add(points.last())
+        return result
+    }
 }
 private suspend fun guardarCoordenadasEnCache(pedidoId: Int, coordenadas: LatLng) {
     // TODO: Implementar si quieres cache persistente

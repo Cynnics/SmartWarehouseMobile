@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.smartwarehouse.mobile.data.local.converters.DateConverter
+import com.smartwarehouse.mobile.domain.model.Usuario
 
 @Entity(tableName = "producto")
 data class ProductoEntity(
@@ -28,13 +29,10 @@ data class PedidoEntity(
     val fechaPedido: String,
     val fechaEntrega: String?,
     val direccionEntrega: String?,
-
-    // 🔥 NUEVOS CAMPOS AÑADIDOS
     val ciudad: String?,
     val codigoPostal: String?,
     val latitud: Double?,
     val longitud: Double?,
-
     val nombreCliente: String?,
     val telefonoCliente: String?,
     val lastSync: Long = System.currentTimeMillis()
@@ -75,4 +73,21 @@ data class UbicacionEntity(
     val fechaHora: String?,
     val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "usuario")
+data class UsuarioEntity (
+    @PrimaryKey(autoGenerate = true)
+    val idUsuario: Int,
+    val nombre : String,
+    val email : String,
+    val rol : String,
+    val telefono : String
+
+)
+
+@Entity(tableName = "rutapedido", primaryKeys = ["idRuta", "idPedido"])
+data class RutaPedidoEntity(
+    val idRuta: Int,
+    val idPedido: Int
 )

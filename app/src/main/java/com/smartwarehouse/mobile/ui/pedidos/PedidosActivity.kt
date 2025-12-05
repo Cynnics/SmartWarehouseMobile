@@ -16,6 +16,10 @@ import com.smartwarehouse.mobile.utils.showToast
 
 class PedidosActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_TODOS_PEDIDOS = "EXTRA_TODOS_PEDIDOS"
+    }
+
     private val viewModel: PedidosViewModel by viewModels()
 
     private lateinit var recyclerView: RecyclerView
@@ -38,6 +42,10 @@ class PedidosActivity : AppCompatActivity() {
         setupFiltros()
         setupObservers()
         setupSwipeRefresh()
+
+        val mostrarTodos = intent.getBooleanExtra(EXTRA_TODOS_PEDIDOS, false)
+        supportActionBar?.title = if (mostrarTodos) "Todos los Pedidos" else "Mis Pedidos"
+        viewModel.sincronizarPedidos(mostrarTodos)
     }
 
     private fun setupToolbar() {

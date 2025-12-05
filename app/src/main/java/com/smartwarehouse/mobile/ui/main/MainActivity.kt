@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
             "admin", "empleado" -> {
                 // Por ahora redirige a la app de escritorio
                 // Podrías crear AdminMainActivity si lo necesitas
-                Intent(this, ClienteMainActivity::class.java) // Temporal
+                Intent(this, AdminEmpleadoMainActivity::class.java) // Temporal
             }
             else -> {
                 // Sin rol válido, volver al login

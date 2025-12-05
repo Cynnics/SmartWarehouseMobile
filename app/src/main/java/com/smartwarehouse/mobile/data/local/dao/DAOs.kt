@@ -150,3 +150,19 @@ interface UbicacionDao {
     @Query("DELETE FROM ubicacionrepartidor")
     suspend fun deleteAllUbicaciones()
 }
+
+@Dao
+interface UsuarioDao{
+
+    @Query("SELECT * FROM usuario WHERE rol = :rol")
+    suspend fun getUsuariosPorRol(rol: String): List<UsuarioEntity>
+}
+
+@Dao
+interface RutaPedidoDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(rutaPedido: RutaPedidoEntity)
+
+    @Query("SELECT * FROM rutapedido WHERE idRuta = :idRuta")
+    fun getPedidosDeRuta(idRuta: Int): Flow<List<RutaPedidoEntity>>
+}

@@ -40,10 +40,6 @@ class RutasViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun filtrarRutasDeHoy() {
-        // TODO: Implementar filtro por fecha en Room
-    }
-
 
 
 }

@@ -17,7 +17,9 @@ import com.smartwarehouse.mobile.data.local.entity.*
         PedidoEntity::class,
         DetallePedidoEntity::class,
         RutaEntity::class,
-        UbicacionEntity::class
+        UbicacionEntity::class,
+        RutaPedidoEntity::class,
+        UsuarioEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -30,7 +32,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun detallePedidoDao(): DetallePedidoDao
     abstract fun rutaDao(): RutaDao
     abstract fun ubicacionDao(): UbicacionDao
-
+    abstract fun usuarioDao(): UsuarioDao
+    abstract fun rutaPedidoDao ()  : RutaPedidoDao
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

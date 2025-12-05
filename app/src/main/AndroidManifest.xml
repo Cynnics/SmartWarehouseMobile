@@ -60,6 +60,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Menú Administradores y Empleados -->
+        <activity
+            android:name=".ui.main.AdminEmpleadoMainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Detalle de Pedido -->
         <activity
             android:name=".ui.pedidos.PedidoDetalleActivity"
@@ -83,6 +89,10 @@
 
         <activity
             android:name=".ui.rutas.RutaDetalleActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.rutas.AsignarRutaActivity"
             android:exported="false" />
 
         <activity

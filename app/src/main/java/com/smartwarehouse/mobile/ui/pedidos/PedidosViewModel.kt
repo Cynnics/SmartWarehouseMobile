@@ -78,17 +78,18 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
         sincronizarPedidos()
     }
 
-    fun sincronizarPedidos() {
+    fun sincronizarPedidos(forzarTodos: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
 
             try {
                 val userRole = authRepository.getUserRole()
 
-                // Sincronizar según rol
-                val result = when (userRole) {
-                    "cliente" -> pedidoRepository.getPedidosCliente()
-                    "repartidor" -> pedidoRepository.getPedidosRepartidor()
+                // Sincronizar según rol o forzar todos
+                val result = when {
+                    forzarTodos -> pedidoRepository.getPedidos() // TODOS los pedidos
+                    userRole == "cliente" -> pedidoRepository.getPedidosCliente()
+                    userRole == "repartidor" -> pedidoRepository.getPedidosRepartidor()
                     else -> pedidoRepository.getPedidos()
                 }
 

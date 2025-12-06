@@ -178,4 +178,62 @@ class RutaRepository(private val context: Context) {
             else -> "Error: ${e.localizedMessage}"
         }
     }
+
+    // Añadir estos métodos a RutaRepository.kt
+
+    /**
+     * Crear una nueva ruta
+     */
+    suspend fun crearRuta(
+        idRepartidor: Int,
+        fechaRuta: String,
+        distanciaEstimadaKm: Double,
+        duracionEstimadaMin: Int
+    ): NetworkResult<Int> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = ActualizarRutaRequest(
+                    idRepartidor = idRepartidor,
+                    fechaRuta = fechaRuta,
+                    distanciaEstimadaKm = distanciaEstimadaKm,
+                    duracionEstimadaMin = duracionEstimadaMin,
+                    estado = "pendiente"
+                )
+
+                val response = rutaService.crearRuta(request)
+
+                if (response.isSuccessful) {
+                    val rutaCreada = response.body()
+                    if (rutaCreada != null) {
+                        NetworkResult.Success(rutaCreada.idRuta)
+                    } else {
+                        NetworkResult.Error("Respuesta vacía del servidor")
+                    }
+                } else {
+                    NetworkResult.Error("Error al crear ruta: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(handleException(e))
+            }
+        }
+    }
+
+    /**
+     * Asignar un pedido a una ruta
+     */
+    suspend fun asignarPedidoARuta(idRuta: Int, idPedido: Int): NetworkResult<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = rutaService.asignarPedidoARuta(idRuta, idPedido)
+
+                if (response.isSuccessful) {
+                    NetworkResult.Success(true)
+                } else {
+                    NetworkResult.Error("Error al asignar pedido: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(handleException(e))
+            }
+        }
+    }
 }

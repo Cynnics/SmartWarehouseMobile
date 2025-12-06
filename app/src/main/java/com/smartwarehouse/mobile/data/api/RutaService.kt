@@ -16,7 +16,7 @@ interface RutaService {
 
     // POST: Crear nueva ruta
     @POST("Rutas")
-    suspend fun crearRuta(@Body ruta: RutaEntregaResponse): Response<RutaEntregaResponse>
+    suspend fun crearRuta(@Body ruta: ActualizarRutaRequest): Response<RutaEntregaResponse>
 
     // PATCH: Actualizar ruta
     @PATCH("Rutas/{id}")

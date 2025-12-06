@@ -41,6 +41,7 @@ android {
         compose = true
         viewBinding = true  // Importante: habilitar ViewBinding para usar con Activities
     }
+    buildToolsVersion = "36.1.0"
 }
 
 dependencies {

@@ -22,7 +22,7 @@ class PedidoSeleccionableAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PedidoViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_pedido, parent, false)
+            .inflate(R.layout.item_pedido_seleccionable, parent, false)
         return PedidoViewHolder(view)
     }
 
@@ -32,15 +32,13 @@ class PedidoSeleccionableAdapter(
 
     inner class PedidoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val cardView: CardView = itemView.findViewById(R.id.cardPedido)
+        private val tvIdPedido: TextView = itemView.findViewById(R.id.tvIdPedido)
+        private val tvEstado: TextView = itemView.findViewById(R.id.tvEstado)
+        private val tvFecha: TextView = itemView.findViewById(R.id.tvFechaPedido)
+        private val estadoIndicator: View = itemView.findViewById(R.id.estadoIndicator)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBoxPedido)
 
         fun bind(pedido: Pedido) {
-            // Otros campos igual que antes...
-            val tvIdPedido: TextView = itemView.findViewById(R.id.tvIdPedido)
-            val tvEstado: TextView = itemView.findViewById(R.id.tvEstado)
-            val tvFecha: TextView = itemView.findViewById(R.id.tvFechaPedido)
-            val estadoIndicator: View = itemView.findViewById(R.id.estadoIndicator)
-
             tvIdPedido.text = "Pedido #${pedido.id}"
             tvEstado.text = pedido.getEstadoTexto()
 
@@ -50,17 +48,20 @@ class PedidoSeleccionableAdapter(
 
             estadoIndicator.setBackgroundColor(pedido.getEstadoColor())
 
-            // Aplicar estado
+            // Aplicar estado del checkbox
             checkBox.isChecked = seleccionados.contains(pedido.id)
 
+            // Listener del checkbox
             checkBox.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) seleccionados.add(pedido.id)
-                else seleccionados.remove(pedido.id)
-
-                // 🔥 Notifica a la Activity
+                if (isChecked) {
+                    seleccionados.add(pedido.id)
+                } else {
+                    seleccionados.remove(pedido.id)
+                }
                 onPedidoToggle(pedido, isChecked)
             }
 
+            // Click en el card también marca/desmarca
             cardView.setOnClickListener {
                 checkBox.isChecked = !checkBox.isChecked
             }
@@ -68,7 +69,12 @@ class PedidoSeleccionableAdapter(
     }
 
     class PedidoDiffCallback : DiffUtil.ItemCallback<Pedido>() {
-        override fun areItemsTheSame(oldItem: Pedido, newItem: Pedido) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: Pedido, newItem: Pedido) = oldItem == newItem
+        override fun areItemsTheSame(oldItem: Pedido, newItem: Pedido): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Pedido, newItem: Pedido): Boolean {
+            return oldItem == newItem
+        }
     }
 }

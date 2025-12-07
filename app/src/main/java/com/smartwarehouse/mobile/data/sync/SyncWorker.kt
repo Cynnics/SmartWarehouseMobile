@@ -3,8 +3,7 @@ package com.smartwarehouse.mobile.data.sync
 import android.content.Context
 import androidx.work.*
 import com.smartwarehouse.mobile.data.local.AppDatabase
-import com.smartwarehouse.mobile.data.repository.ProductoRepositoryWithRoom
-import com.smartwarehouse.mobile.data.repository.PedidoRepository
+import com.smartwarehouse.mobile.data.repository.ProductoRepository
 import com.smartwarehouse.mobile.data.repository.RutaRepository
 import java.util.concurrent.TimeUnit
 
@@ -19,7 +18,7 @@ class SyncWorker(
     override suspend fun doWork(): Result {
         return try {
             // Sincronizar productos
-            val productoRepo = ProductoRepositoryWithRoom(applicationContext)
+            val productoRepo = ProductoRepository(applicationContext)
             productoRepo.syncProductos()
 
             // Sincronizar pedidos

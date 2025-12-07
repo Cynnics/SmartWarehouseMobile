@@ -4,44 +4,78 @@ import android.content.Context
 import com.smartwarehouse.mobile.data.api.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
 import com.smartwarehouse.mobile.data.api.ProductoService
+import com.smartwarehouse.mobile.data.local.AppDatabase
+import com.smartwarehouse.mobile.data.local.mappers.toEntity
+import com.smartwarehouse.mobile.data.local.mappers.toResponse
 import com.smartwarehouse.mobile.data.model.Carrito
 import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.ItemPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
-import com.smartwarehouse.mobile.data.model.response.PedidoResponse
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import retrofit2.http.POST
 
+/**
+ * Repositorio unificado para productos
+ * - Gestiona cache local con Room
+ * - Sincroniza con la API
+ * - Maneja el carrito en memoria
+ * - Crea pedidos completos
+ */
 class ProductoRepository(private val context: Context) {
 
     private val productoService: ProductoService = ApiClient.createService(context, ProductoService::class.java)
     private val pedidoService: PedidoService = ApiClient.createService(context, PedidoService::class.java)
-    private val sessionManager = SessionManager.getInstance(context)
+    private val sessionManager: SessionManager = SessionManager.getInstance(context)
 
-    // Carrito en memoria (singleton)
+    private val database = AppDatabase.getInstance(context)
+    private val productoDao = database.productoDao()
+
+    // ============================================================
+    // CARRITO EN MEMORIA (Singleton)
+    // ============================================================
     companion object {
         val carrito = Carrito()
     }
 
     // ============================================================
-    // OBTENER PRODUCTOS
+    // PRODUCTOS - CACHE CON ROOM
     // ============================================================
-    suspend fun getProductos(): NetworkResult<List<ProductoResponse>> {
+
+    /**
+     * Obtiene productos con estrategia Cache-First
+     * 1. Devuelve datos de cache inmediatamente
+     * 2. Actualiza desde API en segundo plano
+     */
+    fun getProductos(): Flow<List<ProductoResponse>> {
+        return productoDao.getAllProductos().map { entities ->
+            entities.map { it.toResponse() }
+        }
+    }
+
+    /**
+     * Sincroniza productos desde la API
+     */
+    suspend fun syncProductos(): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = productoService.getProductos()
 
                 if (response.isSuccessful) {
-                    val productos = response.body()
-                        ?.filter { it.activo && it.stock > 0 } // Solo productos activos con stock
+                    val productos = response.body()?.filter { it.activo && it.stock > 0 }
                         ?: emptyList()
-                    NetworkResult.Success(productos)
+
+                    // Guardar en cache
+                    val entities = productos.map { it.toEntity() }
+                    productoDao.insertProductos(entities)
+
+                    NetworkResult.Success(true)
                 } else {
-                    NetworkResult.Error("Error al obtener productos: ${response.code()}")
+                    NetworkResult.Error("Error al sincronizar: ${response.code()}")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(handleException(e))
@@ -49,7 +83,22 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // Buscar productos por nombre o categoría
+    /**
+     * Verifica si necesita sincronización (cache vacío o antiguo)
+     */
+    suspend fun needsSync(): Boolean {
+        return withContext(Dispatchers.IO) {
+            productoDao.getProductosCount() == 0
+        }
+    }
+
+    // ============================================================
+    // BÚSQUEDA Y FILTROS
+    // ============================================================
+
+    /**
+     * Buscar productos por nombre o categoría
+     */
     fun buscarProductos(query: String, productos: List<ProductoResponse>): List<ProductoResponse> {
         if (query.isBlank()) return productos
 
@@ -61,13 +110,17 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // Filtrar por categoría
+    /**
+     * Filtrar por categoría
+     */
     fun filtrarPorCategoria(categoria: String?, productos: List<ProductoResponse>): List<ProductoResponse> {
         if (categoria.isNullOrBlank() || categoria == "Todas") return productos
         return productos.filter { it.categoria == categoria }
     }
 
-    // Obtener categorías únicas
+    /**
+     * Obtener categorías únicas
+     */
     fun getCategorias(productos: List<ProductoResponse>): List<String> {
         return productos.mapNotNull { it.categoria }.distinct().sorted()
     }
@@ -75,6 +128,7 @@ class ProductoRepository(private val context: Context) {
     // ============================================================
     // CREAR PEDIDO COMPLETO (Pedido + Detalles)
     // ============================================================
+
     suspend fun crearPedido(
         direccion: String,
         ciudad: String,
@@ -155,6 +209,10 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
+    // ============================================================
+    // MANEJO DE ERRORES
+    // ============================================================
+
     private fun handleException(e: Exception): String {
         return when (e) {
             is java.net.UnknownHostException -> "Sin conexión a internet"
@@ -162,17 +220,4 @@ class ProductoRepository(private val context: Context) {
             else -> "Error: ${e.localizedMessage}"
         }
     }
-}
-
-// Extensión al PedidoService
-interface PedidoServiceExtended {
-    @POST("Pedidos")
-    suspend fun crearPedido(
-        @retrofit2.http.Body pedido: com.smartwarehouse.mobile.data.model.response.PedidoResponse
-    ): retrofit2.Response<com.smartwarehouse.mobile.data.model.response.PedidoResponse>
-
-    @POST("DetallePedido")
-    suspend fun crearDetallePedido(
-        @retrofit2.http.Body detalle: com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
-    ): retrofit2.Response<com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse>
 }

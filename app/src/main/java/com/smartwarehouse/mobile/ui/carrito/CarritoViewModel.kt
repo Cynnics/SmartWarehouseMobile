@@ -7,7 +7,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.smartwarehouse.mobile.data.model.ItemCarrito
 import com.smartwarehouse.mobile.data.repository.ProductoRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
@@ -20,26 +19,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
 
     private val productoRepository = ProductoRepository(application)
     val carrito = ProductoRepository.carrito
-
-    // ------- CAMPOS UI ------
-    private val _direccion = MutableLiveData<String>()
-    val direccion: LiveData<String> = _direccion
-
-    private val _ciudad = MutableLiveData<String>()
-    val ciudad: LiveData<String> = _ciudad
-
-    private val _codigoPostal = MutableLiveData<String>()
-    val codigoPostal: LiveData<String> = _codigoPostal
-
-    private val _notas = MutableLiveData<String?>()
-    val notas: LiveData<String?> = _notas
-
-    // ------- LAT / LNG -------
-    private val _latitud = MutableLiveData<Double?>()
-    val latitud: LiveData<Double?> = _latitud
-
-    private val _longitud = MutableLiveData<Double?>()
-    val longitud: LiveData<Double?> = _longitud
 
     // ------- CARRITO -------
     private val _items = MutableLiveData<List<ItemCarrito>>()
@@ -66,64 +45,98 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // ================================================================
-    // CARGAR DATOS UI DESDE ACTIVITY
+    // ✅ MÉTODO PRINCIPAL: TODO EN UNO
     // ================================================================
-    fun setDireccion(value: String) { _direccion.value = value }
-    fun setCiudad(value: String) { _ciudad.value = value }
-    fun setCodigoPostal(value: String) { _codigoPostal.value = value }
-    fun setNotas(value: String?) { _notas.value = value }
-    fun setLatitud (value: Double) {_latitud.value =value}
-    fun setLongitud (value:Double) {_longitud.value = value}
+    fun crearPedidoConGeocodificacion(
+        direccion: String,
+        ciudad: String,
+        codigoPostal: String,
+        notas: String?
+    ) {
+        // 1️⃣ Validaciones
+        if (direccion.isBlank()) {
+            _crearPedidoResult.value = NetworkResult.Error("La dirección es obligatoria")
+            return
+        }
 
-    // ================================================================
-    // CALCULAR LAT/LNG AUTOMÁTICAMENTE
-    // ================================================================
-    fun calcularCoordenadas() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val direccionCompleta = "${direccion.value.orEmpty()}, ${ciudad.value.orEmpty()}, ${codigoPostal.value.orEmpty()}"
+        if (ciudad.isBlank()) {
+            _crearPedidoResult.value = NetworkResult.Error("La ciudad es obligatoria")
+            return
+        }
+
+        if (codigoPostal.isBlank()) {
+            _crearPedidoResult.value = NetworkResult.Error("El código postal es obligatorio")
+            return
+        }
+
+        if (carrito.isEmpty()) {
+            _crearPedidoResult.value = NetworkResult.Error("El carrito está vacío")
+            return
+        }
+
+        // 2️⃣ Proceso asíncrono
+        _isLoading.value = true
+        _crearPedidoResult.value = NetworkResult.Loading()
+
+        viewModelScope.launch {
             try {
-                Log.d("Geocoder", "Intentando obtener coordenadas para: $direccionCompleta")
-                val geocoder = Geocoder(getApplication(), Locale.getDefault())
-                val resultados = geocoder.getFromLocationName(direccionCompleta, 1)
+                // 3️⃣ Geocodificar dirección
+                val (lat, lng) = calcularCoordenadasSuspend(direccion, ciudad, codigoPostal)
 
-                if (!resultados.isNullOrEmpty()) {
-                    val loc = resultados[0]
-                    Log.d("Geocoder", "Coordenadas encontradas: lat=${loc.latitude}, lng=${loc.longitude}")
-                    _latitud.postValue(loc.latitude)
-                    _longitud.postValue(loc.longitude)
-                } else {
-                    Log.d("Geocoder", "No se encontraron resultados para la dirección")
-                    _latitud.postValue(0.0)
-                    _longitud.postValue(0.0)
+                // 4️⃣ Crear pedido en la API
+                val result = productoRepository.crearPedido(
+                    direccion = direccion,
+                    ciudad = ciudad,
+                    codigoPostal = codigoPostal,
+                    notas = notas,
+                    latitud = lat,
+                    longitud = lng
+                )
+
+                // 5️⃣ Notificar resultado
+                _crearPedidoResult.value = result
+
+                // 6️⃣ Si éxito, vaciar carrito
+                if (result is NetworkResult.Success) {
+                    vaciarCarrito()
                 }
+
             } catch (e: Exception) {
-                Log.e("Geocoder", "Error al obtener coordenadas: ${e.message}", e)
-                _latitud.postValue(0.0)
-                _longitud.postValue(0.0)
+                Log.e("CarritoViewModel", "Error al crear pedido", e)
+                _crearPedidoResult.value = NetworkResult.Error("Error: ${e.message}")
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
-    suspend fun calcularCoordenadasSuspend(
+    // ================================================================
+    // GEOCODIFICACIÓN (PRIVADO)
+    // ================================================================
+    private suspend fun calcularCoordenadasSuspend(
         direccion: String,
         ciudad: String,
         codigoPostal: String
     ): Pair<Double, Double> = withContext(Dispatchers.IO) {
         val direccionCompleta = "$direccion, $ciudad, $codigoPostal"
         try {
+            Log.d("Geocoder", "Intentando obtener coordenadas para: $direccionCompleta")
             val geocoder = Geocoder(getApplication(), Locale.getDefault())
             val resultados = geocoder.getFromLocationName(direccionCompleta, 1)
+
             if (!resultados.isNullOrEmpty()) {
                 val loc = resultados[0]
+                Log.d("Geocoder", "Coordenadas encontradas: lat=${loc.latitude}, lng=${loc.longitude}")
                 Pair(loc.latitude, loc.longitude)
             } else {
+                Log.d("Geocoder", "No se encontraron resultados para la dirección")
                 Pair(0.0, 0.0)
             }
         } catch (e: Exception) {
+            Log.e("Geocoder", "Error al obtener coordenadas: ${e.message}", e)
             Pair(0.0, 0.0)
         }
     }
-
 
     // ================================================================
     // MÉTODOS CARRITO
@@ -153,61 +166,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     fun vaciarCarrito() {
         carrito.vaciar()
         actualizarCarrito()
-    }
-
-
-    // ================================================================
-    // CREAR PEDIDO
-    // ================================================================
-    fun crearPedido() {
-        val direccionValue = _direccion.value
-        val ciudadValue = _ciudad.value
-        val cpValue = _codigoPostal.value
-        val notasValue = _notas.value
-        val lat = _latitud.value ?: 0.0
-        val lng = _longitud.value ?: 0.0
-
-        // ----- VALIDACIONES -----
-        if (direccionValue.isNullOrBlank()) {
-            _crearPedidoResult.value = NetworkResult.Error("La dirección es obligatoria")
-            return
-        }
-
-        if (ciudadValue.isNullOrBlank()) {
-            _crearPedidoResult.value = NetworkResult.Error("La ciudad es obligatoria")
-            return
-        }
-
-        if (cpValue.isNullOrBlank()) {
-            _crearPedidoResult.value = NetworkResult.Error("El código postal es obligatorio")
-            return
-        }
-
-        if (carrito.isEmpty()) {
-            _crearPedidoResult.value = NetworkResult.Error("El carrito está vacío")
-            return
-        }
-
-        _isLoading.value = true
-        _crearPedidoResult.value = NetworkResult.Loading()
-
-        viewModelScope.launch {
-            val result = productoRepository.crearPedido(
-                direccion = direccionValue,
-                ciudad = ciudadValue,
-                codigoPostal = cpValue,
-                notas = notasValue,
-                latitud = lat,
-                longitud = lng
-            )
-
-            _crearPedidoResult.value = result
-            _isLoading.value = false
-
-            if (result is NetworkResult.Success) {
-                vaciarCarrito()
-            }
-        }
     }
 
     fun carritoEstaVacio(): Boolean = carrito.isEmpty()

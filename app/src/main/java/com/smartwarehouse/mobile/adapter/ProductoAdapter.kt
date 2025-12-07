@@ -12,9 +12,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 
+/**
+ * ✅ Adapter "tonto" - Solo muestra datos y notifica clicks
+ * NO contiene lógica de negocio
+ */
 class ProductoAdapter(
     private val onProductoClick: (ProductoResponse) -> Unit,
-    private val onAgregarClick: (ProductoResponse) -> Unit
+    private val onAgregarClick: (ProductoResponse) -> Unit // ✅ Solo notifica el click
 ) : ListAdapter<ProductoResponse, ProductoAdapter.ProductoViewHolder>(ProductoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductoViewHolder {
@@ -36,40 +40,48 @@ class ProductoAdapter(
         private val btnAgregar: Button = itemView.findViewById(R.id.btnAgregar)
 
         fun bind(producto: ProductoResponse) {
+            // ✅ Solo muestra datos
             tvNombre.text = producto.nombre
             tvPrecio.text = producto.getPrecioFormateado()
             tvStock.text = producto.getStockTexto()
             tvCategoria.text = producto.categoria ?: "Sin categoría"
 
-            // Configurar color del stock
-            when {
-                producto.stock == 0 -> {
-                    tvStock.setBackgroundResource(R.drawable.badge_background)
-                    tvStock.setTextColor(itemView.context.getColor(R.color.error))
-                }
-                producto.stock < 10 -> {
-                    tvStock.setBackgroundResource(R.drawable.badge_background)
-                    tvStock.setTextColor(itemView.context.getColor(R.color.warning))
-                }
-                else -> {
-                    tvStock.setBackgroundResource(R.drawable.badge_background)
-                    tvStock.setTextColor(itemView.context.getColor(R.color.success))
-                }
-            }
+            // ✅ Configurar visualización según stock (UI)
+            configurarEstiloStock(producto)
 
-            // Configurar botón según stock
-            btnAgregar.isEnabled = producto.tieneStock()
-            btnAgregar.text = if (producto.tieneStock()) "Agregar" else "Sin Stock"
-
-            // Click en el card
+            // ✅ Click en el card - notifica al ViewModel
             itemView.setOnClickListener {
                 onProductoClick(producto)
             }
 
-            // Click en agregar
+            // ✅ CORRECTO: Solo notifica el click, el ViewModel decide qué hacer
             btnAgregar.setOnClickListener {
-                if (producto.tieneStock()) {
-                    onAgregarClick(producto)
+                onAgregarClick(producto) // ✅ El ViewModel validará si tiene stock
+            }
+        }
+
+        /**
+         * ✅ CORRECTO: Solo cambia colores (UI), no toma decisiones de negocio
+         */
+        private fun configurarEstiloStock(producto: ProductoResponse) {
+            when {
+                producto.stock == 0 -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.error))
+                    btnAgregar.text = "Sin Stock"
+                    btnAgregar.isEnabled = false
+                }
+                producto.stock < 10 -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.warning))
+                    btnAgregar.text = "Agregar"
+                    btnAgregar.isEnabled = true
+                }
+                else -> {
+                    tvStock.setBackgroundResource(R.drawable.badge_background)
+                    tvStock.setTextColor(itemView.context.getColor(R.color.success))
+                    btnAgregar.text = "Agregar"
+                    btnAgregar.isEnabled = true
                 }
             }
         }

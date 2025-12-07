@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.maps.model.LatLng
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.repository.RutaRepository
-import com.smartwarehouse.mobile.ui.main.MainActivity
+import com.smartwarehouse.mobile.ui.MainActivity
 import kotlinx.coroutines.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 

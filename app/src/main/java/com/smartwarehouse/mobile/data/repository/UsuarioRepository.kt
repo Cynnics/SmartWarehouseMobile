@@ -1,7 +1,7 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
-import com.smartwarehouse.mobile.data.api.ApiClient
+import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.UsuarioService
 import com.smartwarehouse.mobile.data.model.response.UsuarioResponse
 import com.smartwarehouse.mobile.utils.NetworkResult

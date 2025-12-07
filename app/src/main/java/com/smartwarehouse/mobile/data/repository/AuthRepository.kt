@@ -2,7 +2,7 @@ package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
 import com.google.gson.Gson
-import com.smartwarehouse.mobile.data.api.ApiClient
+import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.AuthService
 import com.smartwarehouse.mobile.data.model.request.LoginRequest
 import com.smartwarehouse.mobile.data.model.response.ApiErrorResponse
@@ -11,6 +11,8 @@ import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class AuthRepository(private val context: Context) {
 
@@ -43,8 +45,8 @@ class AuthRepository(private val context: Context) {
             } catch (e: Exception) {
                 NetworkResult.Error(
                     when (e) {
-                        is java.net.UnknownHostException -> "No hay conexión a internet"
-                        is java.net.SocketTimeoutException -> "Tiempo de espera agotado"
+                        is UnknownHostException -> "No hay conexión a internet"
+                        is SocketTimeoutException -> "Tiempo de espera agotado"
                         else -> "Error: ${e.localizedMessage ?: "Desconocido"}"
                     }
                 )

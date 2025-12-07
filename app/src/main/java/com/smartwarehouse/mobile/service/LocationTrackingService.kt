@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.repository.RutaRepository
-import com.smartwarehouse.mobile.ui.main.MainActivity
+import com.smartwarehouse.mobile.ui.MainActivity
 import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.*
 

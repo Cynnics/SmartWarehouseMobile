@@ -2,9 +2,6 @@ package com.smartwarehouse.mobile.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import com.smartwarehouse.mobile.data.local.converters.DateConverter
-import com.smartwarehouse.mobile.domain.model.Usuario
 
 @Entity(tableName = "producto")
 data class ProductoEntity(

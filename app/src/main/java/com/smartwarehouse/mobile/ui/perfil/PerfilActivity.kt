@@ -9,9 +9,8 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.smartwarehouse.mobile.R
-import com.smartwarehouse.mobile.domain.model.Usuario
 import com.smartwarehouse.mobile.ui.login.LoginActivity
-import com.smartwarehouse.mobile.ui.main.MainViewModel
+import com.smartwarehouse.mobile.ui.MainViewModel
 import kotlin.getValue
 
 class PerfilActivity : AppCompatActivity() {

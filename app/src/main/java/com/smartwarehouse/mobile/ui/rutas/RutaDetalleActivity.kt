@@ -28,7 +28,7 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.model.response.EstadoPedido
 import com.smartwarehouse.mobile.data.model.response.Pedido
 import com.smartwarehouse.mobile.service.MockLocationService
-import com.smartwarehouse.mobile.tracking.TrackingControlActivity
+import com.smartwarehouse.mobile.ui.tracking.TrackingControlActivity
 import com.smartwarehouse.mobile.utils.Constants
 import com.smartwarehouse.mobile.utils.GeocodingHelper
 import com.smartwarehouse.mobile.utils.NetworkResult

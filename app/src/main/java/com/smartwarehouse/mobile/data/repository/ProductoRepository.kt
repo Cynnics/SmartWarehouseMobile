@@ -1,10 +1,10 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
-import com.smartwarehouse.mobile.data.api.ApiClient
+import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
 import com.smartwarehouse.mobile.data.api.ProductoService
-import com.smartwarehouse.mobile.data.local.AppDatabase
+import com.smartwarehouse.mobile.data.local.database.AppDatabase
 import com.smartwarehouse.mobile.data.local.mappers.toEntity
 import com.smartwarehouse.mobile.data.local.mappers.toResponse
 import com.smartwarehouse.mobile.data.model.Carrito

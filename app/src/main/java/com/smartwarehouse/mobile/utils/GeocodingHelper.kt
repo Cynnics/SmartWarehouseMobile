@@ -1,12 +1,13 @@
 package com.smartwarehouse.mobile.utils
 
-import android.content.Context
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.net.URLEncoder
 
 /**
  * Helper para convertir direcciones en coordenadas usando Geocoding API
@@ -27,7 +28,7 @@ object GeocodingHelper {
                 val apiKey = Constants.GOOGLE_MAPS_API_KEY
 
                 // URL encode de la dirección
-                val encodedAddress = java.net.URLEncoder.encode(direccion, "UTF-8")
+                val encodedAddress = URLEncoder.encode(direccion, "UTF-8")
 
                 val url = "https://maps.googleapis.com/maps/api/geocode/json?" +
                         "address=$encodedAddress" +
@@ -57,13 +58,13 @@ object GeocodingHelper {
                             return@withContext LatLng(lat, lng)
                         }
                     } else {
-                        android.util.Log.e("Geocoding", "Status: $status, response: $jsonString")
+                        Log.e("Geocoding", "Status: $status, response: $jsonString")
                     }
                 }
 
                 null
             } catch (e: Exception) {
-                android.util.Log.e("Geocoding", "Error", e)
+                Log.e("Geocoding", "Error", e)
                 null
             }
         }

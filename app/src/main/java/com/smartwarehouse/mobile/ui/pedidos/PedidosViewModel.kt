@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import com.smartwarehouse.mobile.data.local.AppDatabase
+import com.smartwarehouse.mobile.data.local.database.AppDatabase
 import com.smartwarehouse.mobile.data.local.mappers.toDomain
 import com.smartwarehouse.mobile.data.local.mappers.toEntity
 import com.smartwarehouse.mobile.data.model.response.Pedido

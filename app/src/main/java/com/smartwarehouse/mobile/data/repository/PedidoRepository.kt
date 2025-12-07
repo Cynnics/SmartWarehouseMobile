@@ -1,14 +1,15 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
-import com.google.gson.Gson
-import com.smartwarehouse.mobile.data.api.ApiClient
+import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
 import com.smartwarehouse.mobile.data.model.response.*
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class PedidoRepository(private val context: Context) {
 
@@ -45,29 +46,11 @@ class PedidoRepository(private val context: Context) {
                 android.util.Log.e("PedidoRepo", "Error de red", e)
                 NetworkResult.Error(
                     when (e) {
-                        is java.net.UnknownHostException -> "Sin conexión a internet"
-                        is java.net.SocketTimeoutException -> "Tiempo de espera agotado"
+                        is UnknownHostException -> "Sin conexión a internet"
+                        is SocketTimeoutException -> "Tiempo de espera agotado"
                         else -> "Error: ${e.localizedMessage}"
                     }
                 )
-            }
-        }
-    }
-
-    // Obtener pedidos filtrados por estado
-    suspend fun getPedidosByEstado(estado: String): NetworkResult<List<Pedido>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = pedidoService.getPedidosByEstado(estado)
-
-                if (response.isSuccessful) {
-                    val pedidos = response.body()?.map { it.toDomain() } ?: emptyList()
-                    NetworkResult.Success(pedidos)
-                } else {
-                    NetworkResult.Error("Error al filtrar pedidos")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Error: ${e.localizedMessage}")
             }
         }
     }
@@ -188,8 +171,8 @@ class PedidoRepository(private val context: Context) {
             } catch (e: Exception) {
                 NetworkResult.Error(
                     when (e) {
-                        is java.net.UnknownHostException -> "Sin conexión a internet"
-                        is java.net.SocketTimeoutException -> "Tiempo de espera agotado"
+                        is UnknownHostException -> "Sin conexión a internet"
+                        is SocketTimeoutException -> "Tiempo de espera agotado"
                         else -> "Error: ${e.localizedMessage}"
                     }
                 )

@@ -27,7 +27,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartWarehouse"
         android:usesCleartextTraffic="true"
-        android:name="com.smartwarehouse.mobile.utils.SmartWarehouseApp"
+        android:name="com.smartwarehouse.mobile.SmartWarehouseApp"
         tools:targetApi="31">
 
 
@@ -44,25 +44,25 @@
 
         <!-- MainActivity (Router) -->
         <activity
-            android:name=".ui.main.MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
         <!-- Menú Repartidor -->
         <activity
-            android:name=".ui.main.repartidor.RepartidorMainActivity"
+            android:name=".ui.repartidor.RepartidorMainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
         <!-- Menú Cliente -->
         <activity
-            android:name=".ui.main.cliente.ClienteMainActivity"
+            android:name=".ui.cliente.ClienteMainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
         <!-- Menú Administradores y Empleados -->
         <activity
-            android:name=".ui.main.AdminEmpleadoMainActivity"
+            android:name=".ui.admin.AdminEmpleadoMainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
@@ -106,7 +106,7 @@
 
         <!-- Tracking Control Activity -->
         <activity
-            android:name=".tracking.TrackingControlActivity"
+            android:name=".ui.tracking.TrackingControlActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 

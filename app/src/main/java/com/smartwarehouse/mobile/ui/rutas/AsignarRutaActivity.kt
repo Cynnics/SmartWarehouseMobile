@@ -12,6 +12,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.PedidoSeleccionableAdapter
+import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.data.model.response.Pedido
 import com.smartwarehouse.mobile.utils.showToast
 import java.text.SimpleDateFormat
@@ -88,7 +89,7 @@ class AsignarRutaActivity : AppCompatActivity() {
         // Observer de pedidos pendientes
         viewModel.pedidosPendientes.observe(this) { result ->
             when (result) {
-                is com.smartwarehouse.mobile.utils.NetworkResult.Success -> {
+                is NetworkResult.Success -> {
                     val pedidos = result.data ?: emptyList()
                     pedidoAdapter.submitList(pedidos)
 
@@ -101,13 +102,13 @@ class AsignarRutaActivity : AppCompatActivity() {
                         recyclerPedidos.visibility = View.VISIBLE
                     }
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Error -> {
+                is NetworkResult.Error -> {
                     showToast(result.message ?: "Error al cargar pedidos")
                     emptyView.visibility = View.VISIBLE
                     recyclerPedidos.visibility = View.GONE
                     emptyView.text = "Error al cargar pedidos"
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Loading -> {
+                is NetworkResult.Loading -> {
                     progressBar.visibility = View.VISIBLE
                 }
             }
@@ -116,7 +117,7 @@ class AsignarRutaActivity : AppCompatActivity() {
         // Observer de repartidores
         viewModel.repartidores.observe(this) { result ->
             when (result) {
-                is com.smartwarehouse.mobile.utils.NetworkResult.Success -> {
+                is NetworkResult.Success -> {
                     val repartidores = result.data ?: emptyList()
 
                     if (repartidores.isEmpty()) {
@@ -134,11 +135,11 @@ class AsignarRutaActivity : AppCompatActivity() {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                     spinnerRepartidores.adapter = adapter
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Error -> {
+                is NetworkResult.Error -> {
                     showToast("Error al cargar repartidores")
                     btnCrearRuta.isEnabled = false
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Loading -> {}
+                is NetworkResult.Loading -> {}
             }
         }
 
@@ -147,13 +148,13 @@ class AsignarRutaActivity : AppCompatActivity() {
             progressBar.visibility = View.GONE
 
             when (result) {
-                is com.smartwarehouse.mobile.utils.NetworkResult.Success -> {
+                is NetworkResult.Success -> {
                     mostrarDialogoExito()
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Error -> {
+                is NetworkResult.Error -> {
                     showToast(result.message ?: "Error al crear la ruta")
                 }
-                is com.smartwarehouse.mobile.utils.NetworkResult.Loading -> {
+                is NetworkResult.Loading -> {
                     progressBar.visibility = View.VISIBLE
                 }
             }
@@ -215,7 +216,7 @@ class AsignarRutaActivity : AppCompatActivity() {
         }
 
         val repartidoresResult = viewModel.repartidores.value
-        if (repartidoresResult !is com.smartwarehouse.mobile.utils.NetworkResult.Success) {
+        if (repartidoresResult !is NetworkResult.Success) {
             showToast("Error al obtener datos del repartidor")
             return
         }

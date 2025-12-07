@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile.ui.theme
+package com.smartwarehouse.mobile.desing.theme
 
 import androidx.compose.ui.graphics.Color
 

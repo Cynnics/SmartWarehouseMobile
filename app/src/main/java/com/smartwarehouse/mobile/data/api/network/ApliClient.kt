@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile.data.api
+package com.smartwarehouse.mobile.data.api.network
 
 import android.content.Context
 import com.smartwarehouse.mobile.utils.Constants

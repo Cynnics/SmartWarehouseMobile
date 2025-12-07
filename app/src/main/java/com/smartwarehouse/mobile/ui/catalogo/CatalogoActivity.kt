@@ -17,7 +17,6 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.ProductoAdapter
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.ui.carrito.CarritoActivity
-import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.showToast
 
 class CatalogoActivity : AppCompatActivity() {
@@ -40,7 +39,7 @@ class CatalogoActivity : AppCompatActivity() {
         onAgregarClick = { producto ->
             android.util.Log.d("CatalogoActivity", "Producto agregado: ${producto.nombre}")
 
-            viewModel.agregarAlCarrito(producto)
+            viewModel.agregarProductoAlCarrito(producto)
 
             // 🔥 Verificar inmediatamente
             val itemsEnCarrito = viewModel.itemsEnCarrito.value ?: 0

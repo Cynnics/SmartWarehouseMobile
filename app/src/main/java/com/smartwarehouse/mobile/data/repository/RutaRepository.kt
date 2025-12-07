@@ -1,7 +1,7 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
-import com.smartwarehouse.mobile.data.api.ApiClient
+import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.RutaService
 import com.smartwarehouse.mobile.data.api.UbicacionService
 import com.smartwarehouse.mobile.data.model.response.*

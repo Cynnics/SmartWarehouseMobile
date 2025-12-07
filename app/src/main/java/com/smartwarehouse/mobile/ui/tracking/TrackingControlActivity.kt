@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile.tracking
+package com.smartwarehouse.mobile.ui.tracking
 
 import android.Manifest
 import android.content.BroadcastReceiver

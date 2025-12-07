@@ -12,8 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.RutaAdapter
-import com.smartwarehouse.mobile.utils.NetworkResult
-import com.smartwarehouse.mobile.utils.showToast
 
 class RutasActivity : AppCompatActivity() {
 

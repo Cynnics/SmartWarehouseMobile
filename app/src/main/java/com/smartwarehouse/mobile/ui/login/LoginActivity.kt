@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
-import com.smartwarehouse.mobile.ui.main.MainActivity
+import com.smartwarehouse.mobile.ui.MainActivity
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.utils.NetworkResult
 

@@ -1,6 +1,7 @@
 package com.smartwarehouse.mobile.utils
 
 import android.content.Context
+import android.util.Patterns
 import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.util.*
@@ -31,7 +32,7 @@ fun String.toDate(pattern: String = "yyyy-MM-dd'T'HH:mm:ss"): Date? {
 
 // Extensiones para String
 fun String.isValidEmail(): Boolean {
-    return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    return Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
 
 // Extensiones para validación de campos

@@ -1,4 +1,4 @@
-package com.smartwarehouse.mobile.ui.main.cliente
+package com.smartwarehouse.mobile.ui.cliente
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.ui.login.LoginActivity
-import com.smartwarehouse.mobile.ui.main.MainViewModel
+import com.smartwarehouse.mobile.ui.MainViewModel
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
 import com.smartwarehouse.mobile.ui.pedidos.crear.CrearPedidoActivity
 import com.smartwarehouse.mobile.ui.perfil.PerfilActivity

@@ -1,8 +1,9 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
-import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.UsuarioService
+import com.smartwarehouse.mobile.data.api.network.ApiClient
+import com.smartwarehouse.mobile.data.model.request.ActualizarUsuarioRequest
 import com.smartwarehouse.mobile.data.model.response.UsuarioResponse
 import com.smartwarehouse.mobile.utils.NetworkResult
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,34 @@ class UsuarioRepository(private val context: Context) {
                     NetworkResult.Success(response.body() ?: emptyList())
                 } else {
                     NetworkResult.Error("Error al obtener usuarios: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(handleException(e))
+            }
+        }
+    }
+
+    /**
+     * Actualiza los datos del usuario
+     */
+    suspend fun actualizarUsuario(
+        idUsuario: Int,
+        nombre: String,
+        telefono: String
+    ): NetworkResult<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = ActualizarUsuarioRequest(
+                    nombre = nombre,
+                    telefono = telefono
+                )
+
+                val response = usuarioService.actualizarUsuario(idUsuario, request)
+
+                if (response.isSuccessful) {
+                    NetworkResult.Success(true)
+                } else {
+                    NetworkResult.Error("Error al actualizar usuario: ${response.code()}")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(handleException(e))

@@ -1,4 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartWarehouseMobile</string>
-</resources>
+    <!-- App General -->
+    <string name="app_name">SmartWarehouse</string>
+    <string name="app_subtitle">Sistema de Gestión de Entregas</string>
 
+    <!-- Login -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="login_welcome">Bienvenido %1$s</string>
+    <string name="login_error_empty">Email y contraseña son obligatorios</string>
+    <string name="login_error_invalid_email">Email no válido</string>
+
+    <!-- Main Menu -->
+    <string name="menu_welcome">¡Hola, %1$s!</string>
+    <string name="menu_role_repartidor">Repartidor</string>
+    <string name="menu_role_cliente">Cliente</string>
+    <string name="menu_role_admin">Administrador</string>
+    <string name="menu_subtitle_repartidor">🚚 Listo para entregar</string>
+    <string name="menu_subtitle_cliente">📦 Gestiona tus pedidos</string>
+    <string name="menu_subtitle_admin">📦 Gestiona los pedidos y rutas</string>
+
+    <!-- Buttons -->
+    <string name="btn_logout">Cerrar Sesión</string>
+    <string name="btn_profile">Mi Perfil</string>
+    <string name="btn_my_orders">Mis Pedidos</string>
+    <string name="btn_new_order">Crear Nuevo Pedido</string>
+    <string name="btn_my_routes">Mis Rutas de Hoy</string>
+    <string name="btn_assigned_orders">Pedidos Asignados</string>
+    <string name="btn_assign_routes">Asignar Rutas a Pedidos</string>
+    <string name="btn_all_orders">Consultar Todos los Pedidos</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_confirm">Confirmar</string>
+    <string name="btn_delete">Eliminar</string>
+    <string name="btn_edit">Editar</string>
+
+    <!-- Orders (Pedidos) -->
+    <string name="orders_title">Mis Pedidos</string>
+    <string name="orders_empty">No hay pedidos disponibles</string>
+    <string name="order_id_format">Pedido #%1$d</string>
+    <string name="order_status_pending">Pendiente</string>
+    <string name="order_status_prepared">Preparado</string>
+    <string name="order_status_in_delivery">En Reparto</string>
+    <string name="order_status_delivered">Entregado</string>
+    <string name="order_date">Realizado: %1$s</string>
+    <string name="order_delivered_date">Entregado: %1$s</string>
+    <string name="order_filter_all">Todos</string>
+    <string name="order_filter_by">Filtrar por:</string>
+
+    <!-- Order Details -->
+    <string name="order_detail_title">Detalle del Pedido</string>
+    <string name="order_detail_products">📦 Productos</string>
+    <string name="order_detail_summary">💰 Resumen</string>
+    <string name="order_detail_subtotal">Subtotal:</string>
+    <string name="order_detail_iva">IVA (21%%):</string>
+    <string name="order_detail_total">TOTAL:</string>
+    <string name="order_detail_client">👤 Cliente</string>
+    <string name="order_detail_view_map">🗺️ Ver en el Mapa</string>
+    <string name="order_detail_call_client">Llamar al cliente</string>
+    <string name="order_change_status">Cambiar Estado</string>
+    <string name="order_next_status_format">%1$s</string>
+    <string name="order_confirm_delivery">¿Confirmar que el pedido ha sido entregado al cliente?</string>
+
+    <!-- Routes (Rutas) -->
+    <string name="routes_title">Mis Rutas</string>
+    <string name="routes_empty">No tienes rutas asignadas</string>
+    <string name="route_id_format">Ruta #%1$d</string>
+    <string name="route_status_pending">Pendiente</string>
+    <string name="route_status_in_progress">En Curso</string>
+    <string name="route_status_completed">Completada</string>
+    <string name="route_distance">📍 Distancia</string>
+    <string name="route_duration">⏱️ Duración</string>
+    <string name="route_orders_count">📦 Pedidos</string>
+    <string name="route_start">🚀 Iniciar Ruta</string>
+    <string name="route_complete">✓ Completar Ruta</string>
+    <string name="route_navigate">🗺️ Abrir en Google Maps</string>
+    <string name="route_tracking_panel">📍 Panel de Tracking GPS</string>
+    <string name="route_simulate">🧪 Simular Ruta Completa</string>
+
+    <!-- Catalog (Catálogo) -->
+    <string name="catalog_title">Catálogo</string>
+    <string name="catalog_search_hint">Buscar productos...</string>
+    <string name="catalog_category">Categoría:</string>
+    <string name="catalog_all_categories">Todas</string>
+    <string name="catalog_empty">No se encontraron productos</string>
+    <string name="catalog_add_to_cart">Agregar al Carrito</string>
+    <string name="catalog_no_stock">Sin Stock</string>
+    <string name="catalog_in_stock">En stock</string>
+    <string name="catalog_last_units">Últimas unidades (%1$d)</string>
+    <string name="catalog_added_to_cart">%1$s añadido al carrito (%2$d)</string>
+
+    <!-- Cart (Carrito) -->
+    <string name="cart_title">Mi Carrito</string>
+    <string name="cart_empty">El carrito está vacío. Añade productos primero.</string>
+    <string name="cart_clear">Vaciar Carrito</string>
+    <string name="cart_clear_confirm">¿Deseas vaciar todo el carrito?</string>
+    <string name="cart_item_remove">¿Deseas eliminar este producto del carrito?</string>
+    <string name="cart_item_removed">Producto eliminado</string>
+    <string name="cart_cleared">Carrito vaciado</string>
+
+    <!-- Create Order -->
+    <string name="create_order_title">📦 Crear Nuevo Pedido</string>
+    <string name="create_order_address_section">📍 Dirección de Entrega</string>
+    <string name="create_order_address_hint">Calle y número</string>
+    <string name="create_order_city_hint">Ciudad</string>
+    <string name="create_order_postal_code_hint">Código Postal</string>
+    <string name="create_order_notes_hint">Notas adicionales (opcional)</string>
+    <string name="create_order_products_section">🛒 Productos del Carrito</string>
+    <string name="create_order_summary_section">💰 Resumen del Pedido</string>
+    <string name="create_order_button">✓ Crear Pedido</string>
+    <string name="create_order_address_required">La dirección es obligatoria</string>
+    <string name="create_order_city_required">La ciudad es obligatoria</string>
+    <string name="create_order_postal_required">El código postal es obligatorio</string>
+    <string name="create_order_confirm">¿Deseas crear el pedido con la dirección ingresada?</string>
+    <string name="create_order_success_title">✅ Pedido Creado</string>
+    <string name="create_order_success_message">Tu pedido ha sido creado con éxito.\n\nPronto recibirás confirmación y podrás hacer seguimiento del mismo.</string>
+    <string name="create_order_view_orders">Ver Mis Pedidos</string>
+    <string name="create_order_back_catalog">Volver al Catálogo</string>
+
+    <!-- Assign Route -->
+    <string name="assign_route_title">🗺️ Crear Nueva Ruta</string>
+    <string name="assign_route_info_section">📋 Información de la Ruta</string>
+    <string name="assign_route_deliverer">Repartidor:</string>
+    <string name="assign_route_date">Fecha de la ruta:</string>
+    <string name="assign_route_date_format">Fecha: %1$s</string>
+    <string name="assign_route_change_date">Cambiar</string>
+    <string name="assign_route_select_orders">📦 Seleccionar Pedidos</string>
+    <string name="assign_route_orders_selected">%1$d pedidos seleccionados</string>
+    <string name="assign_route_no_pending">No hay pedidos pendientes</string>
+    <string name="assign_route_create">✓ Crear Ruta</string>
+    <string name="assign_route_select_one">Selecciona al menos un pedido</string>
+    <string name="assign_route_select_deliverer">Selecciona un repartidor</string>
+    <string name="assign_route_confirm_title">Confirmar Creación de Ruta</string>
+    <string name="assign_route_confirm_message">¿Crear ruta con los siguientes datos?\n\nRepartidor: %1$s\nFecha: %2$s\nPedidos: %3$d\n\nLos pedidos pasarán a estado "En Reparto"</string>
+    <string name="assign_route_success_title">✅ Ruta Creada</string>
+    <string name="assign_route_success_message">La ruta ha sido creada exitosamente y los pedidos han sido asignados al repartidor.</string>
+    <string name="assign_route_view_routes">Ver Rutas</string>
+    <string name="assign_route_create_another">Crear Otra</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mi Perfil</string>
+    <string name="profile_edit">Editar Perfil</string>
+    <string name="profile_edit_soon">Función de edición próximamente...</string>
+    <string name="profile_role_label">Rol:</string>
+    <string name="profile_phone_label">Teléfono:</string>
+    <string name="profile_phone_not_available">No disponible</string>
+
+    <!-- Tracking -->
+    <string name="tracking_title">🗺️ Panel de Control GPS</string>
+    <string name="tracking_real_section">📍 Tracking GPS Real</string>
+    <string name="tracking_simulation_section">🧪 Simulación GPS (Pruebas)</string>
+    <string name="tracking_simulation_description">La simulación envía ubicaciones a lo largo de una ruta predefinida por Madrid sin necesidad de GPS real.</string>
+    <string name="tracking_mode_simulation">🎭 Modo Simulación</string>
+    <string name="tracking_start">▶️ Iniciar Tracking</string>
+    <string name="tracking_stop">⏸️ Detener Tracking</string>
+    <string name="tracking_current_location">📍 Ubicación Actual</string>
+    <string name="tracking_get_location">Obtener Ubicación</string>
+    <string name="tracking_updates_format">Actualizaciones: %1$d</string>
+    <string name="tracking_status_active">✅ ACTIVO - Enviando ubicación real cada 30s</string>
+    <string name="tracking_status_inactive">❌ INACTIVO</string>
+    <string name="tracking_simulation_active">✅ ACTIVO - Enviando ubicación simulada cada 5s</string>
+    <string name="tracking_simulation_inactive">❌ INACTIVO</string>
+    <string name="tracking_mode_real">Modo REAL activado</string>
+    <string name="tracking_mode_simulation_active">Modo SIMULACIÓN activado</string>
+    <string name="tracking_started_real">📍 Tracking GPS iniciado</string>
+    <string name="tracking_started_simulation">🧪 Simulación GPS iniciada</string>
+    <string name="tracking_stopped">Tracking GPS detenido</string>
+    <string name="tracking_simulation_stopped">🧪 Simulación GPS detenida</string>
+    <string name="tracking_permission_required">⚠️ Se necesitan permisos de ubicación</string>
+    <string name="tracking_permission_granted">✅ Permisos concedidos</string>
+    <string name="tracking_permission_denied">❌ Permisos de ubicación denegados</string>
+    <string name="tracking_already_active">El tracking ya está activo</string>
+
+    <!-- Notifications -->
+    <string name="notification_tracking_title">🚚 Seguimiento Activo</string>
+    <string name="notification_tracking_location">Ubicación: %1$s, %2$s</string>
+    <string name="notification_tracking_getting">Obteniendo ubicación...</string>
+    <string name="notification_simulation_title">🧪 GPS Simulado (Pruebas)</string>
+    <string name="notification_simulation_location">🎭 SIMULADO: %1$s, %2$s</string>
+
+    <!-- Errors -->
+    <string name="error_network">Sin conexión a internet</string>
+    <string name="error_timeout">Tiempo de espera agotado</string>
+    <string name="error_unknown">Error desconocido</string>
+    <string name="error_loading_data">Error al cargar datos</string>
+    <string name="error_invalid_order">Error: ID de pedido inválido</string>
+    <string name="error_invalid_route">Error: ID de ruta inválido</string>
+    <string name="error_no_route_orders">Esta ruta no tiene pedidos asignados</string>
+    <string name="error_no_location">No se pudo obtener tu ubicación actual</string>
+    <string name="error_calculate_route">No se pudo calcular la ruta</string>
+    <string name="error_maps_not_installed">Google Maps no está instalado</string>
+    <string name="error_address_not_available">Dirección no disponible</string>
+    <string name="error_phone_not_available">Teléfono no disponible</string>
+
+    <!-- Common -->
+    <string name="common_loading">Cargando...</string>
+    <string name="common_yes">Sí</string>
+    <string name="common_no">No</string>
+    <string name="common_ok">Aceptar</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_refresh">Actualizar</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_back">Volver</string>
+    <string name="common_next">Siguiente</string>
+    <string name="common_previous">Anterior</string>
+    <string name="common_search">Buscar</string>
+    <string name="common_filter">Filtrar</string>
+
+    <!-- Date/Time Formats -->
+    <string name="format_date">dd/MM/yyyy</string>
+    <string name="format_datetime">dd/MM/yyyy HH:mm</string>
+    <string name="format_time">HH:mm</string>
+
+    <!-- Units -->
+    <string name="unit_km">km</string>
+    <string name="unit_min">min</string>
+    <string name="unit_currency">€</string>
+    <string name="format_price">%1$.2f €</string>
+    <string name="format_price_per_unit">%1$.2f €/ud</string>
+</resources>

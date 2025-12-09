@@ -99,8 +99,13 @@
             android:name=".ui.perfil.PerfilActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.perfil.EditarPerfilActivity"
+            android:exported="false" />
+
         <activity android:name=".ui.catalogo.CatalogoActivity"
             android:exported="false" />
+
         <activity android:name=".ui.carrito.CarritoActivity"
             android:exported="false" />
 

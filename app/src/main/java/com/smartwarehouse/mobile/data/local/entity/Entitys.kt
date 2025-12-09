@@ -79,7 +79,9 @@ data class UsuarioEntity (
     val nombre : String,
     val email : String,
     val rol : String,
-    val telefono : String
+    val telefono : String,
+    val direccionFacturacion : String?,
+    val nif : Int?
 
 )
 

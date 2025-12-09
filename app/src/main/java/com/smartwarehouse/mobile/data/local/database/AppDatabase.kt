@@ -33,7 +33,7 @@ import com.smartwarehouse.mobile.data.local.entity.UsuarioEntity
         RutaPedidoEntity::class,
         UsuarioEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -47,15 +47,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun usuarioDao(): UsuarioDao
     abstract fun rutaPedidoDao ()  : RutaPedidoDao
     companion object {
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(
-                    "ALTER TABLE ubicacionrepartidor ADD COLUMN fechaHora TEXT"
-                )
-            }
-        }
+
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {

@@ -16,6 +16,6 @@ interface UsuarioService {
     @PATCH("Usuarios/{id}")
     suspend fun actualizarUsuario(
         @Path("id") idUsuario: Int,
-        @Body request: ActualizarUsuarioRequest
+        @Body request: UsuarioResponse
     ): Response<UsuarioResponse>
 }

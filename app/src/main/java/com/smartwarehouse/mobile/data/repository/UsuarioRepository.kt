@@ -6,6 +6,7 @@ import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.model.request.ActualizarUsuarioRequest
 import com.smartwarehouse.mobile.data.model.response.UsuarioResponse
 import com.smartwarehouse.mobile.utils.NetworkResult
+import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -62,17 +63,27 @@ class UsuarioRepository(private val context: Context) {
     ): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = ActualizarUsuarioRequest(
+                // 1️⃣ Primero obtener el usuario actual
+                val sessionManager = SessionManager.getInstance(context)
+                val email = sessionManager.getUserEmail() ?: ""
+                val rol = sessionManager.getUserRole() ?: ""
+
+                // 2️⃣ Crear objeto completo
+                val usuario = UsuarioResponse(
+                    idUsuario = idUsuario,
                     nombre = nombre,
+                    email = email,
+                    rol = rol,
                     telefono = telefono
                 )
 
-                val response = usuarioService.actualizarUsuario(idUsuario, request)
+                // 3️⃣ Enviar actualización
+                val response = usuarioService.actualizarUsuario(idUsuario, usuario)
 
                 if (response.isSuccessful) {
                     NetworkResult.Success(true)
                 } else {
-                    NetworkResult.Error("Error al actualizar usuario: ${response.code()}")
+                    NetworkResult.Error("Error al actualizar: ${response.code()}")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(handleException(e))

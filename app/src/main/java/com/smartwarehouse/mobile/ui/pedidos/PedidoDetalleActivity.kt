@@ -170,6 +170,31 @@ class PedidoDetalleActivity : AppCompatActivity() {
         viewModel.isLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
+
+        viewModel.cliente.observe(this) { result ->
+            if (!viewModel.esRepartidor() && !viewModel.esAdministradorEmpleado()) return@observe
+
+            when (result) {
+                is NetworkResult.Success -> {
+                    val cliente = result.data
+                    if (::cardCliente.isInitialized) {
+                        cardCliente.visibility = View.VISIBLE
+                        tvNombreCliente.text = cliente?.nombre ?: "Cliente #${cliente?.idUsuario}"
+                        tvDireccionCliente.text = cliente?.direccionFacturacion ?: "Dirección no disponible"
+                        tvTelefonoCliente.text = cliente?.telefono ?: "Teléfono no disponible"
+                    }
+                }
+                is NetworkResult.Error -> {
+                    if (::cardCliente.isInitialized) cardCliente.visibility = View.GONE
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
+
+        viewModel.productosMap.observe(this) { map ->
+            detalleAdapter.setProductosMap(map)
+        }
+
     }
 
     private fun mostrarInformacionPedido(pedido: com.smartwarehouse.mobile.data.model.response.Pedido) {
@@ -188,20 +213,20 @@ class PedidoDetalleActivity : AppCompatActivity() {
             tvFechaEntrega.visibility = View.GONE
         }
 
-        // Información del cliente (solo visible para repartidores)
-        try {
-            if (viewModel.esRepartidor() && ::cardCliente.isInitialized) {
+        // Solo mostrar info del cliente si el usuario es repartidor
+        if (::cardCliente.isInitialized) {
+            if (viewModel.esRepartidor() || viewModel.esAdministradorEmpleado()) {
                 cardCliente.visibility = View.VISIBLE
-                tvNombreCliente.text = pedido.nombreCliente ?: "Cliente #${pedido.idCliente}"
+                // Inicialmente mostramos info básica mientras llega el observer del cliente
+                tvNombreCliente.text = "Cliente #${pedido.idCliente}"
                 tvDireccionCliente.text = pedido.direccionEntrega ?: "Dirección no disponible"
-                tvTelefonoCliente.text = pedido.telefonoCliente ?: "Teléfono no disponible"
-            } else if (::cardCliente.isInitialized) {
+                tvTelefonoCliente.text = "Teléfono no disponible"
+            } else {
                 cardCliente.visibility = View.GONE
             }
-        } catch (e: Exception) {
-            android.util.Log.w("PedidoDetalle", "Error al mostrar info del cliente", e)
         }
     }
+
 
     private fun configurarBotones(pedido: com.smartwarehouse.mobile.data.model.response.Pedido) {
         // Solo repartidores pueden cambiar estados

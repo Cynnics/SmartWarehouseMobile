@@ -180,6 +180,36 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
+    suspend fun getUsuarioById(idUsuario: Int): NetworkResult<UsuarioResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = pedidoService.getUsuarioById(idUsuario) // Debes agregar este endpoint en tu service
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        NetworkResult.Success(it)
+                    } ?: NetworkResult.Error("Usuario no encontrado")
+                } else {
+                    NetworkResult.Error("Error al obtener usuario: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(e.localizedMessage ?: "Error desconocido")
+            }
+        }
+    }
+
+    suspend fun getProductoById(idProducto: Int): NetworkResult<ProductoResponse> {
+        return try {
+            val response = pedidoService.getProductoById(idProducto) // Llamada a tu API o base de datos
+            if (response.isSuccessful && response.body() != null) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Error al obtener el producto")
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Error desconocido")
+        }
+    }
+
 
 
 

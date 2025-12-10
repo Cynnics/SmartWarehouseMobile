@@ -3,7 +3,9 @@ package com.smartwarehouse.mobile.data.api
 import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
 import com.smartwarehouse.mobile.data.model.response.PedidoResponse
+import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.data.model.response.TotalesPedidoResponse
+import com.smartwarehouse.mobile.data.model.response.UsuarioResponse
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -58,4 +60,11 @@ interface PedidoService {
     // POST: Crear detallePedido
     @POST("DetallePedido")
     suspend fun crearDetallePedido(@Body detalle: DetallePedidoResponse) : Response<DetallePedidoResponse>
+
+    @GET("/api/Usuarios/{id}")
+    suspend fun getUsuarioById(@Path("id") id: Int): Response<UsuarioResponse>
+
+    // GET: Obtener un producto por ID
+    @GET("Productos/{id}")
+    suspend fun getProductoById(@Path("id") idProducto: Int): Response<ProductoResponse>
 }

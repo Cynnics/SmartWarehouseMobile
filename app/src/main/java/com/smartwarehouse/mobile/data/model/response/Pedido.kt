@@ -60,16 +60,16 @@ data class DetallePedidoResponse(
     val subtotal: Double
 )
 
-// Modelo extendido para la UI (con nombre del producto)
-data class DetallePedidoExtendido(
+data class DetallePedidoConNombre(
     val idDetalle: Int,
     val idPedido: Int,
     val idProducto: Int,
-    val nombreProducto: String,
     val cantidad: Int,
-    val precioUnitario: Double,
-    val subtotal: Double
+    val subtotal: Double,
+    val nombreProducto: String
 )
+
+
 
 // Modelo de totales del pedido
 data class TotalesPedidoResponse(

@@ -74,7 +74,9 @@ class UsuarioRepository(private val context: Context) {
                     nombre = nombre,
                     email = email,
                     rol = rol,
-                    telefono = telefono
+                    telefono = telefono,
+                    direccionFacturacion = null
+
                 )
 
                 // 3️⃣ Enviar actualización

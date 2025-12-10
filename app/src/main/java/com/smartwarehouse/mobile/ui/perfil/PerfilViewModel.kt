@@ -41,7 +41,8 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             nombre = userName,
             email = userEmail,
             rol = userRole,
-            telefono = userPhone
+            telefono = userPhone,
+            direccionFacturacion = null
         )
     }
 

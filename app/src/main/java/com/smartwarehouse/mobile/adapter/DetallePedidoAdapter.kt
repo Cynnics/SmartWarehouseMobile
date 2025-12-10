@@ -12,6 +12,13 @@ import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
 
 class DetallePedidoAdapter : ListAdapter<DetallePedidoResponse, DetallePedidoAdapter.DetalleViewHolder>(DetalleDiffCallback()) {
 
+    private var productosMap: Map<Int, String> = emptyMap()
+
+    fun setProductosMap(map: Map<Int, String>) {
+        productosMap = map
+        notifyDataSetChanged() // refresca la lista
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetalleViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_detalle_pedido, parent, false)
@@ -22,7 +29,7 @@ class DetallePedidoAdapter : ListAdapter<DetallePedidoResponse, DetallePedidoAda
         holder.bind(getItem(position), position + 1)
     }
 
-    class DetalleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class DetalleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvNumero: TextView = itemView.findViewById(R.id.tvNumero)
         private val tvProductoId: TextView = itemView.findViewById(R.id.tvProductoId)
         private val tvCantidad: TextView = itemView.findViewById(R.id.tvCantidad)
@@ -31,18 +38,14 @@ class DetallePedidoAdapter : ListAdapter<DetallePedidoResponse, DetallePedidoAda
 
         fun bind(detalle: DetallePedidoResponse, numero: Int) {
             tvNumero.text = "$numero."
-            tvProductoId.text = "Producto #${detalle.idProducto}"
+            tvProductoId.text = productosMap[detalle.idProducto] ?: "Producto #${detalle.idProducto}"
             tvCantidad.text = "x${detalle.cantidad}"
 
-            // Calcular precio unitario
-            val precioUnitario = if (detalle.cantidad > 0) {
-                detalle.subtotal / detalle.cantidad
-            } else {
-                0.0
-            }
+            val precioUnitario = if (detalle.cantidad > 0) detalle.subtotal / detalle.cantidad else 0.0
             tvPrecioUnitario.text = String.format("%.2f €/ud", precioUnitario)
             tvSubtotal.text = String.format("%.2f €", detalle.subtotal)
         }
+
     }
 
     class DetalleDiffCallback : DiffUtil.ItemCallback<DetallePedidoResponse>() {

@@ -10,8 +10,11 @@ data class UsuarioResponse (
     val nombre: String,
     val email: String,
     val rol: String,
-    val telefono : String
+    val telefono : String,
+    val direccionFacturacion : String?
 )
+
+
 
 // Modelo para respuestas de error de la API
 data class ApiErrorResponse(

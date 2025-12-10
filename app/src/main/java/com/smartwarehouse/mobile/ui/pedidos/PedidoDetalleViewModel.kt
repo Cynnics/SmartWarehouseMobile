@@ -5,9 +5,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.smartwarehouse.mobile.data.model.response.DetallePedidoConNombre
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
 import com.smartwarehouse.mobile.data.model.response.Pedido
 import com.smartwarehouse.mobile.data.model.response.TotalesPedidoResponse
+import com.smartwarehouse.mobile.data.model.response.UsuarioResponse
 import com.smartwarehouse.mobile.data.repository.AuthRepository
 import com.smartwarehouse.mobile.data.repository.PedidoRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
@@ -24,6 +26,15 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
     private val _detalles = MutableLiveData<NetworkResult<List<DetallePedidoResponse>>>()
     val detalles: LiveData<NetworkResult<List<DetallePedidoResponse>>> = _detalles
 
+    private val _detallesConNombre = MutableLiveData<NetworkResult<List<DetallePedidoConNombre>>>()
+    val detallesConNombre: LiveData<NetworkResult<List<DetallePedidoConNombre>>> = _detallesConNombre
+
+    private val _productosMap = MutableLiveData<Map<Int, String>>() // idProducto -> nombreProducto
+    val productosMap: LiveData<Map<Int, String>> = _productosMap
+
+    private val _cliente = MutableLiveData<NetworkResult<UsuarioResponse>>()
+    val cliente: LiveData<NetworkResult<UsuarioResponse>> = _cliente
+
     private val _totales = MutableLiveData<NetworkResult<TotalesPedidoResponse>>()
     val totales: LiveData<NetworkResult<TotalesPedidoResponse>> = _totales
 
@@ -39,6 +50,12 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             val result = pedidoRepository.getPedidoById(idPedido)
             _pedido.value = result
+            if (result is NetworkResult.Success) {
+                result.data?.let { pedido ->
+                    cargarCliente(pedido.idCliente)
+                }
+            }
+
             _isLoading.value = false
         }
     }
@@ -46,14 +63,41 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
     fun cargarDetalles(idPedido: Int) {
         viewModelScope.launch {
             val result = pedidoRepository.getDetallesPedido(idPedido)
-            _detalles.value = result
+            if (result is NetworkResult.Success) {
+                val detalles = result.data ?: emptyList()
+
+                // Mapear idProducto -> nombreProducto
+                val mapProductos = mutableMapOf<Int, String>()
+                for (detalle in detalles) {
+                    val productoResult = pedidoRepository.getProductoById(detalle.idProducto)
+                    if (productoResult is NetworkResult.Success) {
+                        val nombreProducto = productoResult.data?.nombre ?: "Producto #${detalle.idProducto}"
+                        mapProductos[detalle.idProducto] = nombreProducto
+                    } else {
+                        mapProductos[detalle.idProducto] = "Producto #${detalle.idProducto}"
+                    }
+                }
+
+                _productosMap.value = mapProductos
+            }
+
+            _detalles.value = result // Mantener List<DetallePedidoResponse>
         }
     }
+
 
     fun cargarTotales(idPedido: Int) {
         viewModelScope.launch {
             val result = pedidoRepository.getTotalesPedido(idPedido)
             _totales.value = result
+        }
+    }
+
+    fun cargarCliente(idCliente: Int) {
+        viewModelScope.launch {
+            _cliente.value = NetworkResult.Loading()
+            val result = pedidoRepository.getUsuarioById(idCliente)
+            _cliente.value = result
         }
     }
 
@@ -95,6 +139,11 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
 
     fun esCliente(): Boolean {
         return authRepository.getUserRole() == "cliente"
+    }
+
+    fun esAdministradorEmpleado(): Boolean {
+        val role = authRepository.getUserRole()
+        return role == "admin" || role == "empleado"
     }
 
     fun getUserId(): Int {

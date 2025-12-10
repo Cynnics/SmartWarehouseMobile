@@ -239,7 +239,7 @@ class AsignarRutaActivity : AppCompatActivity() {
             Fecha: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(fechaSeleccionada)}
             Pedidos: ${selectedPedidos.size}
             
-            Los pedidos pasarán a estado "En Reparto"
+            Los pedidos pasarán a estado "Preparado"
         """.trimIndent()
 
         AlertDialog.Builder(this)

@@ -8,13 +8,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.smartwarehouse.mobile.data.model.response.*
+import com.smartwarehouse.mobile.data.repository.PedidoRepository
 import com.smartwarehouse.mobile.data.repository.RutaRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RutaDetalleViewModel(application: Application) : AndroidViewModel(application) {
 
     private val rutaRepository = RutaRepository(application)
+    private val pedidoRepository = PedidoRepository(application)
 
     private val _ruta = MutableLiveData<NetworkResult<Ruta>>()
     val ruta: LiveData<NetworkResult<Ruta>> = _ruta
@@ -73,11 +79,24 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
         _isLoading.value = true
 
         viewModelScope.launch {
-            val result = rutaRepository.cambiarEstadoRuta(idRuta, "en_curso")
-            _cambioEstadoResult.value = result
+            // 1️⃣ Cambiar estado de la ruta a "en_curso"
+            val resultRuta = rutaRepository.cambiarEstadoRuta(idRuta, "en_curso")
 
-            if (result is NetworkResult.Success) {
-                cargarRuta(idRuta)
+            if (resultRuta is NetworkResult.Success) {
+                // 2️⃣ 🔥 CAMBIAR TODOS LOS PEDIDOS DE LA RUTA A "EN_REPARTO"
+                val resultCambioEstados = cambiarEstadosPedidosDeRuta(idRuta, "en_reparto")
+
+                if (resultCambioEstados is NetworkResult.Success) {
+                    _cambioEstadoResult.value = NetworkResult.Success(true)
+                    cargarRuta(idRuta)
+                    cargarPedidosDeRuta(idRuta) // Recargar pedidos con nuevos estados
+                } else {
+                    _cambioEstadoResult.value = NetworkResult.Error(
+                        "Ruta iniciada pero error al actualizar pedidos"
+                    )
+                }
+            } else {
+                _cambioEstadoResult.value = resultRuta
             }
 
             _isLoading.value = false
@@ -88,14 +107,71 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
         _isLoading.value = true
 
         viewModelScope.launch {
-            val result = rutaRepository.cambiarEstadoRuta(idRuta, "completada")
-            _cambioEstadoResult.value = result
+            // 1️⃣ 🔥 CAMBIAR TODOS LOS PEDIDOS A "ENTREGADO"
+            val resultPedidos = cambiarEstadosPedidosDeRuta(idRuta, "entregado")
 
-            if (result is NetworkResult.Success) {
-                cargarRuta(idRuta)
+            if (resultPedidos is NetworkResult.Success) {
+                // 2️⃣ Cambiar estado de la ruta a "completada"
+                val resultRuta = rutaRepository.cambiarEstadoRuta(idRuta, "completada")
+
+                if (resultRuta is NetworkResult.Success) {
+                    _cambioEstadoResult.value = NetworkResult.Success(true)
+                    cargarRuta(idRuta)
+                    cargarPedidosDeRuta(idRuta)
+                } else {
+                    _cambioEstadoResult.value = NetworkResult.Error(
+                        "Pedidos actualizados pero error al completar ruta"
+                    )
+                }
+            } else {
+                _cambioEstadoResult.value = resultPedidos
             }
 
             _isLoading.value = false
+        }
+    }
+
+    private suspend fun cambiarEstadosPedidosDeRuta(
+        idRuta: Int,
+        nuevoEstado: String
+    ): NetworkResult<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Obtener pedidos de la ruta
+                val pedidosResult = rutaRepository.getPedidosDeRuta(idRuta)
+
+                if (pedidosResult is NetworkResult.Success) {
+                    val pedidos = pedidosResult.data ?: emptyList()
+
+                    if (pedidos.isEmpty()) {
+                        return@withContext NetworkResult.Error("No hay pedidos en esta ruta")
+                    }
+
+                    // Cambiar estado de cada pedido
+                    val resultados = pedidos.map { pedido ->
+                        async {
+                            pedidoRepository.cambiarEstadoPedido(pedido.id, nuevoEstado)
+                        }
+                    }.awaitAll()
+
+                    // Verificar si todos fueron exitosos
+                    val todosExitosos = resultados.all { it is NetworkResult.Success }
+
+                    if (todosExitosos) {
+                        Log.d("RutaDetalleVM", "✅ Todos los pedidos actualizados a $nuevoEstado")
+                        NetworkResult.Success(true)
+                    } else {
+                        val errores = resultados.filterIsInstance<NetworkResult.Error<*>>()
+                        Log.e("RutaDetalleVM", "❌ ${errores.size} pedidos fallaron al actualizar")
+                        NetworkResult.Error("Error al actualizar ${errores.size} pedidos")
+                    }
+                } else {
+                    NetworkResult.Error("Error al obtener pedidos de la ruta")
+                }
+            } catch (e: Exception) {
+                Log.e("RutaDetalleVM", "Error al cambiar estados", e)
+                NetworkResult.Error("Error: ${e.localizedMessage}")
+            }
         }
     }
 
@@ -118,19 +194,5 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
                 Log.d("RutaDetalleVM", "Distancia y duración guardadas correctamente")
             }
         }
-    }
-
-    // Obtener coordenadas del centro de la ruta (para centrar el mapa)
-    fun getCentroRuta(): LatLng {
-        val pedidosList = (_pedidos.value as? NetworkResult.Success)?.data
-
-        if (pedidosList.isNullOrEmpty()) {
-            // Coordenadas por defecto (Madrid)
-            return LatLng(40.4168, -3.7038)
-        }
-
-        // TODO: Calcular el centro promedio de todos los pedidos
-        // Por ahora devolvemos Madrid
-        return LatLng(40.4168, -3.7038)
     }
 }

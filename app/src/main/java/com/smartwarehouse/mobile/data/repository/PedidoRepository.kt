@@ -1,8 +1,10 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
+import com.smartwarehouse.mobile.data.local.database.AppDatabase
 import com.smartwarehouse.mobile.data.model.response.*
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
@@ -138,18 +140,31 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Cambiar estado del pedido (para repartidores)
+    // PedidoRepository.kt
+
     suspend fun cambiarEstadoPedido(idPedido: Int, nuevoEstado: String): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = pedidoService.cambiarEstado(idPedido, nuevoEstado)
 
                 if (response.isSuccessful) {
+                    // 🔥 ACTUALIZAR TAMBIÉN EN ROOM (caché local)
+                    val database = AppDatabase.getInstance(context)
+                    val pedidoDao = database.pedidoDao()
+
+                    pedidoDao.getPedidoById(idPedido)?.let { pedidoEntity ->
+                        val pedidoActualizado = pedidoEntity.copy(estado = nuevoEstado)
+                        pedidoDao.updatePedido(pedidoActualizado)
+                    }
+
+                    Log.d("PedidoRepo", "✅ Pedido #$idPedido actualizado a $nuevoEstado")
                     NetworkResult.Success(true)
                 } else {
-                    NetworkResult.Error("Error al cambiar estado")
+                    Log.e("PedidoRepo", "❌ Error HTTP ${response.code()} al cambiar estado")
+                    NetworkResult.Error("Error al cambiar estado: ${response.code()}")
                 }
             } catch (e: Exception) {
+                Log.e("PedidoRepo", "❌ Excepción al cambiar estado", e)
                 NetworkResult.Error("Error: ${e.localizedMessage}")
             }
         }

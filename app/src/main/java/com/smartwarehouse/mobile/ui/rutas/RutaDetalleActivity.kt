@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -271,10 +272,14 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         viewModel.cambioEstadoResult.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
-                    showToast("Estado actualizado correctamente")
+                    showToast("✅ Ruta actualizada correctamente")
+
+                    // 🔥 RECARGAR DATOS
+                    viewModel.cargarRuta(idRuta)
+                    viewModel.cargarPedidosDeRuta(idRuta)
                 }
                 is NetworkResult.Error -> {
-                    showToast(result.message ?: "Error al cambiar estado")
+                    showToast("❌ ${result.message}")
                 }
                 is NetworkResult.Loading -> {}
             }
@@ -288,11 +293,11 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupListeners() {
         btnIniciarRuta.setOnClickListener {
-            viewModel.iniciarRuta(idRuta)
+            confirmarIniciarRuta()
         }
 
         btnCompletarRuta.setOnClickListener {
-            viewModel.completarRuta(idRuta)
+            confirmarCompletarRuta()
         }
 
         btnNavegar.setOnClickListener {
@@ -306,16 +311,61 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
     }
+
+
+    private fun confirmarIniciarRuta() {
+        val numPedidos = (viewModel.pedidos.value as? NetworkResult.Success)?.data?.size ?: 0
+
+        AlertDialog.Builder(this)
+            .setTitle("Iniciar Ruta")
+            .setMessage(
+                "¿Iniciar esta ruta?\n\n" +
+                        "• Todos los pedidos ($numPedidos) pasarán a estado 'En Reparto'\n" +
+                        "• Se comenzará el tracking de la ruta\n\n" +
+                        "¿Continuar?"
+            )
+            .setPositiveButton("Iniciar") { _, _ ->
+                viewModel.iniciarRuta(idRuta)
+                showToast("Iniciando ruta...")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /**
+     * 🔥 NUEVO: Confirmar completar ruta
+     */
+    private fun confirmarCompletarRuta() {
+        val numPedidos = (viewModel.pedidos.value as? NetworkResult.Success)?.data?.size ?: 0
+
+        AlertDialog.Builder(this)
+            .setTitle("Completar Ruta")
+            .setMessage(
+                "¿Marcar esta ruta como completada?\n\n" +
+                        "⚠️ IMPORTANTE:\n" +
+                        "• Todos los pedidos ($numPedidos) pasarán a estado 'Entregado'\n" +
+                        "• Esta acción NO se puede deshacer\n\n" +
+                        "¿Estás seguro?"
+            )
+            .setPositiveButton("Completar") { _, _ ->
+                viewModel.completarRuta(idRuta)
+                showToast("Completando ruta...")
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
     /**
      * Añade marcadores en el mapa para cada pedido
      */
     private suspend fun addPedidoMarkers(pedidos: List<Pedido>) {
-        // Limpiar marcadores anteriores
-        markers.forEach { it.remove() }
-        markers.clear()
 
-        // Mostrar loading
+        // 🔥 Todo lo que sea Google Maps → SIEMPRE DISPATCHERS.MAIN
         withContext(Dispatchers.Main) {
+            // Limpiar marcadores anteriores
+            markers.forEach { it.remove() }
+            markers.clear()
+
+            // Mostrar loading
             progressBar.visibility = View.VISIBLE
         }
 
@@ -323,27 +373,18 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         val pedidosConCoords = pedidos.filter { it.tieneCoordenadasValidas() }
         val pedidosSinCoords = pedidos.filter { !it.tieneCoordenadasValidas() }
 
-        // 🔥 LOG DE DEBUG
-        Log.d("RutaDetalle", "Pedidos con coords: ${pedidosConCoords.size}")
-        Log.d("RutaDetalle", "Pedidos sin coords: ${pedidosSinCoords.size}")
-
-        // Geocodificar los que no tienen coordenadas
+        // Geocodificar los que no tienen coordenadas (esto sí es background)
         val pedidosGeocoded = if (pedidosSinCoords.isNotEmpty()) {
             geocodePedidos(pedidosSinCoords)
-        } else {
-            emptyList()
-        }
+        } else emptyList()
 
-        // Combinar todos los pedidos con ubicación
+        // Combinar ubicaciones
         val pedidosConUbicacion = pedidosConCoords.map { pedido ->
-            PedidoConUbicacion(
-                pedido = pedido,
-                coordenadas = pedido.getLatLng()!! // Sabemos que existe
-            )
+            PedidoConUbicacion(pedido, pedido.getLatLng()!!)
         } + pedidosGeocoded
 
-        // Añadir marcadores al mapa
         withContext(Dispatchers.Main) {
+
             progressBar.visibility = View.GONE
 
             if (pedidosConUbicacion.isEmpty()) {
@@ -351,6 +392,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 return@withContext
             }
 
+            // Añadir marcadores
             pedidosConUbicacion.forEach { pedidoConUbicacion ->
                 val pedido = pedidoConUbicacion.pedido
                 val location = pedidoConUbicacion.coordenadas
@@ -369,6 +411,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                         .snippet("${pedido.getEstadoTexto()} - ${pedido.getDireccionCompleta()}")
                         .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
                 )
+
                 marker?.let { markers.add(it) }
             }
 
@@ -376,18 +419,19 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             if (markers.isNotEmpty()) {
                 val builder = LatLngBounds.Builder()
                 markers.forEach { builder.include(it.position) }
-
                 currentLocationMarker?.let { builder.include(it.position) }
 
                 val bounds = builder.build()
                 val padding = 150
+
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
             }
 
-            // Calcular ruta óptima
+            // Calcular ruta óptima (debe correr en main si modifica el mapa)
             calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion)
         }
     }
+
 
     /**
      * Calcula la ruta optimizada usando Directions API

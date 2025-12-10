@@ -236,8 +236,8 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
                     val resultAsignacion = rutaRepository.asignarPedidoARuta(idRuta, pedido.id)
 
                     if (resultAsignacion is NetworkResult.Success) {
-                        // 2. Cambiar estado del pedido a "en_reparto"
-                        pedidoRepository.cambiarEstadoPedido(pedido.id, "en_reparto")
+                        // 2. Cambiar estado del pedido a "preparado"
+                        pedidoRepository.cambiarEstadoPedido(pedido.id, "preparado")
                     } else {
                         resultAsignacion
                     }

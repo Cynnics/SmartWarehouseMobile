@@ -1,6 +1,7 @@
 package com.smartwarehouse.mobile.ui.catalogo
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,15 +10,20 @@ import androidx.lifecycle.viewModelScope
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 import com.smartwarehouse.mobile.data.repository.ProductoRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CatalogoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val productoRepository = ProductoRepository(application)
 
-    // 🔥 Flow de Room convertido a LiveData
-    val productosFiltrados = productoRepository.getProductos()
-        .asLiveData(viewModelScope.coroutineContext)
+    private val _todosLosProductos = MutableLiveData<List<ProductoResponse>>()
 
     private val _categorias = MutableLiveData<List<String>>()
     val categorias: LiveData<List<String>> = _categorias
@@ -35,6 +41,27 @@ class CatalogoViewModel(application: Application) : AndroidViewModel(application
     private val _mensajeUsuario = MutableLiveData<String?>()
     val mensajeUsuario: LiveData<String?> = _mensajeUsuario
 
+    private val _categoriaSeleccionada = MutableStateFlow("Todas")
+    val categoriaSeleccionada = _categoriaSeleccionada.asStateFlow()
+
+    private val _queryBusqueda = MutableStateFlow("")
+    val queryBusqueda = _queryBusqueda.asStateFlow()
+
+    val productosFiltrados: LiveData<List<ProductoResponse>> =
+        combine(
+            productoRepository.getProductos(),
+            _categoriaSeleccionada,
+            _queryBusqueda
+        ) { productos, categoria, query ->
+
+            var filtrados = productos
+            if (categoria != "Todas") filtrados = productoRepository.filtrarPorCategoria(categoria, filtrados)
+            if (query.isNotBlank()) filtrados = productoRepository.buscarProductos(query, filtrados)
+            filtrados
+        }.asLiveData(viewModelScope.coroutineContext)
+
+
+
     init {
         cargarProductos()
         actualizarContadorCarrito()
@@ -43,32 +70,46 @@ class CatalogoViewModel(application: Application) : AndroidViewModel(application
     fun cargarProductos() {
         viewModelScope.launch {
             _isLoading.value = true
+            Log.d("CatalogoViewModel", "Cargando productos...")
 
-            // Verificar si necesita sincronización
+            // 🔍 Sincronización
             if (productoRepository.needsSync()) {
-                // Primera carga: sincronizar desde API
                 val result = productoRepository.syncProductos()
                 _syncResult.value = result
             } else {
-                // Ya hay datos en cache, opcionalmente sincronizar en segundo plano
-                launch {
-                    productoRepository.syncProductos()
+                launch { productoRepository.syncProductos() }
+            }
+            // 🔥 Tomar solo la PRIMERA carga del Flow (evita loading infinito)
+            val primeraCarga = productoRepository.getProductos().first()
+            Log.d("CatalogoViewModel", "Primeros productos recibidos: ${primeraCarga.size}")
+
+            _todosLosProductos.value = primeraCarga
+
+            // Categorías iniciales
+            val categoriasUnicas = productoRepository.getCategorias(primeraCarga)
+            _categorias.value = listOf("Todas") + categoriasUnicas
+
+            _isLoading.value = false  // 🔥 Ahora sí se ejecuta
+
+            // 🔥 Si quieres seguir recibiendo actualizaciones en tiempo real:
+            launch {
+                productoRepository.getProductos().collect { productos ->
+                    Log.d("CatalogoViewModel", "Actualización en tiempo real: ${productos.size}")
+                    _todosLosProductos.value = productos
+                    _categorias.value = listOf("Todas") + productoRepository.getCategorias(productos)
                 }
             }
-
-            _isLoading.value = false
         }
     }
 
-    fun buscarProductos(query: String) {
-        // TODO: Implementar búsqueda en Room
-        // productoDao.searchProductos(query).asLiveData()
+    fun filtrarPorCategoria(categoria: String) {
+        _categoriaSeleccionada.value = categoria
     }
 
-    fun filtrarPorCategoria(categoria: String) {
-        // TODO: Implementar filtro en Room
-        // productoDao.getProductosByCategoria(categoria).asLiveData()
+    fun buscarProductos(query: String) {
+        _queryBusqueda.value = query
     }
+
 
     /**
      * ✅ MÉTODO INTELIGENTE: Valida antes de agregar
@@ -114,4 +155,5 @@ class CatalogoViewModel(application: Application) : AndroidViewModel(application
     fun mensajeMostrado() {
         _mensajeUsuario.value = null
     }
+
 }

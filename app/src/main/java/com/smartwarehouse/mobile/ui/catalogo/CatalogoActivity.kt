@@ -116,21 +116,6 @@ class CatalogoActivity : AppCompatActivity() {
                 View.GONE
             }
         }
-
-        // Observer de productos (para errores)
-        viewModel.productosFiltrados.observe(this) { productos: List<ProductoResponse> ->
-            productoAdapter.submitList(productos)
-
-            if (productos.isEmpty()) {
-                emptyView.visibility = View.VISIBLE
-                recyclerView.visibility = View.GONE
-                emptyView.text = "No se encontraron productos"
-            } else {
-                emptyView.visibility = View.GONE
-                recyclerView.visibility = View.VISIBLE
-            }
-        }
-
     }
 
     private fun setupListeners() {

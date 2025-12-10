@@ -51,11 +51,15 @@ class CarritoAdapter(
             btnMas.alpha = if (item.cantidad < item.producto.stock) 1.0f else 0.5f
 
             btnMenos.setOnClickListener {
-                onDecrementar(item.producto.idProducto)
+                if (item.cantidad > 1) {
+                    onDecrementar(item.producto.idProducto)
+                }
             }
 
             btnMas.setOnClickListener {
-                onIncrementar(item.producto.idProducto)
+                if (item.cantidad < item.producto.stock) {
+                    onIncrementar(item.producto.idProducto)
+                }
             }
 
             btnEliminar.setOnClickListener {
@@ -70,7 +74,9 @@ class CarritoAdapter(
         }
 
         override fun areContentsTheSame(oldItem: ItemCarrito, newItem: ItemCarrito): Boolean {
-            return oldItem == newItem
+            return oldItem.cantidad == newItem.cantidad &&
+                    oldItem.getSubtotal() == newItem.getSubtotal()
         }
+
     }
 }

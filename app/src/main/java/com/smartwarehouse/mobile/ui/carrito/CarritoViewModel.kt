@@ -47,13 +47,15 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     // ================================================================
     // ✅ MÉTODO PRINCIPAL: TODO EN UNO
     // ================================================================
+    // CarritoViewModel.kt
+
     fun crearPedidoConGeocodificacion(
         direccion: String,
         ciudad: String,
         codigoPostal: String,
         notas: String?
     ) {
-        // 1️⃣ Validaciones
+        // 1️⃣ Validaciones (sin cambios)
         if (direccion.isBlank()) {
             _crearPedidoResult.value = NetworkResult.Error("La dirección es obligatoria")
             return
@@ -80,10 +82,26 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
 
         viewModelScope.launch {
             try {
-                // 3️⃣ Geocodificar dirección
+
+
+                val itemsParaActualizar = carrito.items.map { item ->
+                    ItemCarrito(item.producto, item.cantidad)
+                }.toList()
+
+                Log.d("CarritoViewModel", "Items guardados para actualizar: ${itemsParaActualizar.size}")
+
+                // 🔥 PASO 1: VERIFICAR STOCK ANTES DE CREAR EL PEDIDO
+                val (stockValido, mensajeStock) = productoRepository.verificarStockDisponible(carrito.items)
+                if (!stockValido) {
+                    _crearPedidoResult.value = NetworkResult.Error(mensajeStock)
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                // 3️⃣ Geocodificar dirección (sin cambios)
                 val (lat, lng) = calcularCoordenadasSuspend(direccion, ciudad, codigoPostal)
 
-                // 4️⃣ Crear pedido en la API
+                // 4️⃣ Crear pedido en la API (sin cambios)
                 val result = productoRepository.crearPedido(
                     direccion = direccion,
                     ciudad = ciudad,
@@ -93,12 +111,24 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
                     longitud = lng
                 )
 
-                // 5️⃣ Notificar resultado
-                _crearPedidoResult.value = result
-
-                // 6️⃣ Si éxito, vaciar carrito
+                // 🔥 PASO 2: SI EL PEDIDO SE CREÓ, ACTUALIZAR STOCK
                 if (result is NetworkResult.Success) {
-                    vaciarCarrito()
+                    Log.d("CarritoViewModel", "✅ Pedido creado, actualizando stock...")
+
+                    // 🔥 USAR LA COPIA GUARDADA, NO carrito.items
+                    val stockActualizado = productoRepository.actualizarStockProductos(itemsParaActualizar)
+
+                    if (stockActualizado) {
+                        Log.d("CarritoViewModel", "✅ Stock actualizado correctamente")
+                        vaciarCarrito() // AHORA SÍ vaciar el carrito
+                        _crearPedidoResult.value = result
+                    } else {
+                        Log.e("CarritoViewModel", "⚠️ Pedido creado pero hubo errores al actualizar stock")
+                        _crearPedidoResult.value = NetworkResult.Error("Pedido creado pero error al actualizar stock")
+                    }
+                } else {
+                    // 5️⃣ Si hubo error al crear pedido
+                    _crearPedidoResult.value = result
                 }
 
             } catch (e: Exception) {
@@ -109,6 +139,8 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+
 
     // ================================================================
     // GEOCODIFICACIÓN (PRIVADO)
@@ -142,25 +174,38 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     // MÉTODOS CARRITO
     // ================================================================
     fun actualizarCarrito() {
-        _items.value = carrito.items.toList()
+        _items.value = carrito.items.map { item ->
+            ItemCarrito(item.producto, item.cantidad)
+        }
         _subtotal.value = carrito.getSubtotal()
         _iva.value = carrito.getIVA()
         _total.value = carrito.getTotal()
     }
 
     fun incrementarCantidad(idProducto: Int) {
-        carrito.items.find { it.producto.idProducto == idProducto }?.incrementar()
-        actualizarCarrito()
+        carrito.items.find { it.producto.idProducto == idProducto }?.let { item ->
+            if (item.cantidad < item.producto.stock) {
+                item.incrementar()
+                actualizarCarrito()
+                Log.d("CarritoVM", "Incrementado producto $idProducto. Nueva cantidad: ${item.cantidad}")
+            }
+        }
     }
 
     fun decrementarCantidad(idProducto: Int) {
-        carrito.items.find { it.producto.idProducto == idProducto }?.decrementar()
-        actualizarCarrito()
+        carrito.items.find { it.producto.idProducto == idProducto }?.let { item ->
+            if (item.cantidad > 1) {
+                item.decrementar()
+                actualizarCarrito()
+                Log.d("CarritoVM", "Decrementado producto $idProducto. Nueva cantidad: ${item.cantidad}")
+            }
+        }
     }
 
     fun eliminarItem(idProducto: Int) {
         carrito.eliminarProducto(idProducto)
         actualizarCarrito()
+        Log.d("CarritoVM", "Eliminado producto $idProducto")
     }
 
     fun vaciarCarrito() {

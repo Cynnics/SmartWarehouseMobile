@@ -1,6 +1,7 @@
 package com.smartwarehouse.mobile.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.PedidoService
 import com.smartwarehouse.mobile.data.api.ProductoService
@@ -8,6 +9,7 @@ import com.smartwarehouse.mobile.data.local.database.AppDatabase
 import com.smartwarehouse.mobile.data.local.mappers.toEntity
 import com.smartwarehouse.mobile.data.local.mappers.toResponse
 import com.smartwarehouse.mobile.data.model.Carrito
+import com.smartwarehouse.mobile.data.model.ItemCarrito
 import com.smartwarehouse.mobile.data.model.response.CrearPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.ItemPedidoRequest
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
@@ -205,6 +207,114 @@ class ProductoRepository(private val context: Context) {
 
             } catch (e: Exception) {
                 NetworkResult.Error(handleException(e))
+            }
+        }
+    }
+
+    // ProductoRepository.kt
+
+    // 🔥 Verificar stock disponible
+    suspend fun verificarStockDisponible(items: List<ItemCarrito>): Pair<Boolean, String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("VerificarStock", "🔍 Verificando stock para ${items.size} productos...")
+
+                for (item in items) {
+                    Log.d("VerificarStock", "Verificando: ${item.producto.nombre} - Cantidad solicitada: ${item.cantidad}")
+
+                    val response = productoService.getProductoById(item.producto.idProducto)
+                    if (response.isSuccessful) {
+                        val productoActual = response.body()
+                        if (productoActual == null) {
+                            Log.e("VerificarStock", "❌ Body null para producto ${item.producto.idProducto}")
+                            return@withContext Pair(false, "No se pudo verificar el producto: ${item.producto.nombre}")
+                        }
+
+                        Log.d("VerificarStock", "Stock actual: ${productoActual.stock}")
+
+                        if (productoActual.stock < item.cantidad) {
+                            Log.e("VerificarStock", "❌ Stock insuficiente")
+                            return@withContext Pair(
+                                false,
+                                "Stock insuficiente para ${item.producto.nombre}. Disponible: ${productoActual.stock}, Solicitado: ${item.cantidad}"
+                            )
+                        }
+
+                        Log.d("VerificarStock", "✅ Stock suficiente para ${item.producto.nombre}")
+                    } else {
+                        Log.e("VerificarStock", "❌ Error en request: ${response.code()}")
+                        return@withContext Pair(false, "Error al verificar stock: ${response.code()}")
+                    }
+                }
+
+                Log.d("VerificarStock", "✅ Stock verificado correctamente para todos los productos")
+                Pair(true, "Stock verificado correctamente")
+            } catch (e: Exception) {
+                Log.e("VerificarStock", "❌ Excepción: ${e.message}", e)
+                Pair(false, "Error verificando stock: ${e.message}")
+            }
+        }
+    }
+
+    // 🔥 Actualizar stock después de crear pedido
+    suspend fun actualizarStockProductos(items: List<ItemCarrito>): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("ActualizarStock", "🔄 Iniciando actualización de stock para ${items.size} productos...")
+
+                items.forEach { item ->
+                    try {
+                        Log.d("ActualizarStock", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                        Log.d("ActualizarStock", "Producto: ${item.producto.nombre}")
+                        Log.d("ActualizarStock", "ID: ${item.producto.idProducto}")
+                        Log.d("ActualizarStock", "Cantidad a restar: ${item.cantidad}")
+
+                        // Obtener el stock actual
+                        Log.d("ActualizarStock", "📥 GET Productos/${item.producto.idProducto}")
+                        val response = productoService.getProductoById(item.producto.idProducto)
+
+                        if (response.isSuccessful) {
+                            val productoActual = response.body()
+                            if (productoActual != null) {
+                                Log.d("ActualizarStock", "Stock actual: ${productoActual.stock}")
+
+                                // Calcular nuevo stock
+                                val nuevoStock = productoActual.stock - item.cantidad
+                                Log.d("ActualizarStock", "Nuevo stock calculado: $nuevoStock")
+
+                                // Actualizar en la API
+                                Log.d("ActualizarStock", "📤 PATCH Productos/${item.producto.idProducto}/stock con valor: $nuevoStock")
+                                val updateResponse = productoService.actualizarStock(
+                                    item.producto.idProducto,
+                                    nuevoStock
+                                )
+
+                                if (updateResponse.isSuccessful) {
+                                    Log.d("ActualizarStock", "✅ Stock actualizado exitosamente")
+                                } else {
+                                    Log.e("ActualizarStock", "❌ Error en PATCH: ${updateResponse.code()} - ${updateResponse.message()}")
+                                    return@withContext false
+                                }
+                            } else {
+                                Log.e("ActualizarStock", "❌ Body null en GET")
+                                return@withContext false
+                            }
+                        } else {
+                            Log.e("ActualizarStock", "❌ Error en GET: ${response.code()}")
+                            return@withContext false
+                        }
+                    } catch (e: Exception) {
+                        Log.e("ActualizarStock", "❌ Excepción procesando ${item.producto.nombre}: ${e.message}", e)
+                        return@withContext false
+                    }
+                }
+
+                Log.d("ActualizarStock", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d("ActualizarStock", "✅ TODOS LOS STOCKS ACTUALIZADOS CORRECTAMENTE")
+                true
+            } catch (e: Exception) {
+                Log.e("ActualizarStock", "❌ Error general: ${e.message}", e)
+                false
             }
         }
     }

@@ -23,4 +23,10 @@ interface ProductoService {
 
     @DELETE("Productos/{id}")
     suspend fun eliminarProducto(@Path("id") idProducto: Int): Response<Unit>
+
+    @PATCH("Productos/{id}/stock")
+    suspend fun actualizarStock(
+        @Path("id") idProducto: Int,
+        @Body nuevoStock: Int
+    ): Response<Unit>
 }

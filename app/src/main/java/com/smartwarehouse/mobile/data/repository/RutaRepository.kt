@@ -4,6 +4,7 @@ import android.content.Context
 import com.smartwarehouse.mobile.data.api.network.ApiClient
 import com.smartwarehouse.mobile.data.api.RutaService
 import com.smartwarehouse.mobile.data.api.UbicacionService
+import com.smartwarehouse.mobile.data.local.database.AppDatabase
 import com.smartwarehouse.mobile.data.model.response.*
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.utils.SessionManager
@@ -179,8 +180,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Añadir estos métodos a RutaRepository.kt
-
     /**
      * Crear una nueva ruta
      */
@@ -230,6 +229,48 @@ class RutaRepository(private val context: Context) {
                     NetworkResult.Success(true)
                 } else {
                     NetworkResult.Error("Error al asignar pedido: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetworkResult.Error(handleException(e))
+            }
+        }
+    }
+
+    suspend fun actualizarDistanciaYDuracion(
+        idRuta: Int,
+        distanciaKm: Double,
+        duracionMin: Int
+    ): NetworkResult<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // 1️⃣ Actualizar en la API
+                val response = rutaService.actualizarRuta(
+                    idRuta,
+                    ActualizarRutaRequest(
+                        idRepartidor = 0, // No lo modificamos
+                        fechaRuta = "", // No lo modificamos
+                        distanciaEstimadaKm = distanciaKm,
+                        duracionEstimadaMin = duracionMin,
+                        estado = null
+                    )
+                )
+
+                if (response.isSuccessful) {
+                    // 2️⃣ Actualizar en Room
+                    val database = AppDatabase.getInstance(context)
+                    val rutaDao = database.rutaDao()
+
+                    rutaDao.getRutaById(idRuta)?.let { rutaEntity ->
+                        val rutaActualizada = rutaEntity.copy(
+                            distanciaEstimadaKm = distanciaKm,
+                            duracionEstimadaMin = duracionMin
+                        )
+                        rutaDao.updateRuta(rutaActualizada)
+                    }
+
+                    NetworkResult.Success(true)
+                } else {
+                    NetworkResult.Error("Error al actualizar: ${response.code()}")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(handleException(e))

@@ -1,6 +1,7 @@
 package com.smartwarehouse.mobile.ui.rutas
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -102,6 +103,20 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val result = rutaRepository.enviarUbicacion(latitud, longitud)
             _ubicacionEnviada.value = result
+        }
+    }
+
+    fun guardarDistanciaYDuracion(idRuta: Int, distanciaKm: Double, duracionMin: Int) {
+        viewModelScope.launch {
+            val result = rutaRepository.actualizarDistanciaYDuracion(
+                idRuta,
+                distanciaKm,
+                duracionMin
+            )
+
+            if (result is NetworkResult.Success) {
+                Log.d("RutaDetalleVM", "Distancia y duración guardadas correctamente")
+            }
         }
     }
 

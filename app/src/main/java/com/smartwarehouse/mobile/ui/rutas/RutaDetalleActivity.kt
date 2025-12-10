@@ -418,6 +418,10 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     route?.let {
                         drawRoute(it)
                         updateRouteInfo(it)
+                        val distanciaKm = it.distanceMeters / 1000.0
+                        val duracionMin = it.durationSeconds / 60
+                        viewModel.guardarDistanciaYDuracion(idRuta, distanciaKm, duracionMin)
+
                     } ?: showToast("No se pudo calcular la ruta")
 
                     progressBar.visibility = View.GONE

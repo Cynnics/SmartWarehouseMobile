@@ -52,8 +52,8 @@ data class CrearUbicacionRequest(
 
 // Request para actualizar ruta
 data class ActualizarRutaRequest(
-    val idRepartidor: Int,
-    val fechaRuta: String,
+    val idRepartidor: Int?,
+    val fechaRuta: String?,
     val distanciaEstimadaKm: Double?,
     val duracionEstimadaMin: Int?,
     val estado: String?

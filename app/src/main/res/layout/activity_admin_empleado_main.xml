@@ -96,6 +96,21 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_marginBottom="12dp"/>
 
+        <!-- Botón Todas las Rutas -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTodasRutas"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="🗺️ Ver Todas las Rutas"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:iconGravity="textStart"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="12dp"/>
+
         <!-- Botón Perfil -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPerfil"

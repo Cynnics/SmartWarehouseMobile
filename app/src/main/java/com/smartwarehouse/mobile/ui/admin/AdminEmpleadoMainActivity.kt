@@ -22,6 +22,8 @@ class AdminEmpleadoMainActivity : AppCompatActivity() {
 
         val btnTodosPedidos = findViewById<MaterialButton>(R.id.btnConsultarPedidos)
         val btnAsignarRutas = findViewById<MaterialButton>(R.id.btnAsignarRutas)
+        val btnTodasRutas = findViewById<MaterialButton>(R.id.btnTodasRutas)
+
         val btnPerfil = findViewById<MaterialButton>(R.id.btnPerfil)
         val btnCerrarSesion = findViewById<MaterialButton>(R.id.btnCerrarSesion)
 
@@ -33,6 +35,11 @@ class AdminEmpleadoMainActivity : AppCompatActivity() {
 
         btnAsignarRutas.setOnClickListener {
             val intent = Intent(this, AsignarRutaActivity::class.java)
+            startActivity(intent)
+        }
+
+        btnTodasRutas.setOnClickListener {
+            val intent = Intent(this, TodasRutasActivity::class.java)
             startActivity(intent)
         }
 

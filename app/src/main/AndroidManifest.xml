@@ -96,6 +96,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.admin.TodasRutasActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.perfil.PerfilActivity"
             android:exported="false" />
 

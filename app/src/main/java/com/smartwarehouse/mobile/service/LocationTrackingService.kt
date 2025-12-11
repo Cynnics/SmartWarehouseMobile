@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.repository.RutaRepository
-import com.smartwarehouse.mobile.ui.MainActivity
+import com.smartwarehouse.mobile.ui.login.LoginActivity
 import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.*
 
@@ -137,7 +137,7 @@ class LocationTrackingService : Service() {
     }
 
     private fun createNotification(location: Location? = null): Notification {
-        val notificationIntent = Intent(this, MainActivity::class.java)
+        val notificationIntent = Intent(this, LoginActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.smartwarehouse.mobile.data.model.response.LoginResponse
 import com.smartwarehouse.mobile.data.repository.AuthRepository
 import com.smartwarehouse.mobile.utils.NetworkResult
+import com.smartwarehouse.mobile.utils.SessionManager
 import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,4 +36,24 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun isLoggedIn(): Boolean = authRepository.isLoggedIn()
+
+    fun logout() {
+        authRepository.logout()
+    }
+    fun getUserRole(): String? = authRepository.getUserRole()
+
+    private val _userName = MutableLiveData<String>()
+    val userName: LiveData<String> = _userName
+
+    private val _userRole = MutableLiveData<String>()
+    val userRole: LiveData<String> = _userRole
+
+    init {
+        loadUserInfo()
+    }
+
+    private fun loadUserInfo() {
+        _userName.value = authRepository.getUserName() ?: "Usuario"
+        _userRole.value = authRepository.getUserRole() ?: "Sin rol"
+    }
 }

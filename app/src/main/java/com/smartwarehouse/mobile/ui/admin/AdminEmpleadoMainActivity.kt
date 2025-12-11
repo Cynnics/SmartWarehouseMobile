@@ -6,15 +6,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.smartwarehouse.mobile.R
-import com.smartwarehouse.mobile.ui.MainViewModel
 import com.smartwarehouse.mobile.ui.login.LoginActivity
+import com.smartwarehouse.mobile.ui.login.LoginViewModel
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
 import com.smartwarehouse.mobile.ui.perfil.PerfilActivity
 import com.smartwarehouse.mobile.ui.rutas.AsignarRutaActivity
 
 class AdminEmpleadoMainActivity : AppCompatActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

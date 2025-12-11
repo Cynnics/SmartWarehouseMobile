@@ -42,12 +42,6 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity (Router) -->
-        <activity
-            android:name=".ui.MainActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
         <!-- Menú Repartidor -->
         <activity
             android:name=".ui.repartidor.RepartidorMainActivity"

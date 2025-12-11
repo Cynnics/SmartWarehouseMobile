@@ -7,8 +7,10 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
-import com.smartwarehouse.mobile.ui.MainActivity
 import com.smartwarehouse.mobile.R
+import com.smartwarehouse.mobile.ui.admin.AdminEmpleadoMainActivity
+import com.smartwarehouse.mobile.ui.cliente.ClienteMainActivity
+import com.smartwarehouse.mobile.ui.repartidor.RepartidorMainActivity
 import com.smartwarehouse.mobile.utils.NetworkResult
 
 class LoginActivity : AppCompatActivity() {
@@ -25,7 +27,7 @@ class LoginActivity : AppCompatActivity() {
 
         // Verificar si ya hay sesión activa
         if (viewModel.isLoggedIn()) {
-            navigateToMain()
+            routeToAppropriateActivity()
             return
         }
 
@@ -61,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
                             .apply()
                     }
                     Toast.makeText(this, "Bienvenido ${result.data?.usuario?.nombre}", Toast.LENGTH_SHORT).show()
-                    navigateToMain()
+                    routeToAppropriateActivity()
                 }
                 is NetworkResult.Error -> {
                     Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
@@ -81,8 +83,22 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToMain() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun routeToAppropriateActivity() {
+        val userRole = viewModel.getUserRole()
+
+        val intent = when (userRole?.lowercase()) {
+            "repartidor" -> Intent(this, RepartidorMainActivity::class.java)
+            "cliente" -> Intent(this, ClienteMainActivity::class.java)
+            "admin", "empleado" -> Intent(this, AdminEmpleadoMainActivity::class.java)
+            else -> {
+                // Rol desconocido, cerrar sesión y quedarse en login
+                viewModel.logout()
+                Toast.makeText(this, "Rol de usuario no válido", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        // Limpiar stack de actividades y abrir la nueva
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

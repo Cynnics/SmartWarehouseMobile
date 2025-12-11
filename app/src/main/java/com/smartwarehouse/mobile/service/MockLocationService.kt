@@ -9,9 +9,9 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.maps.model.LatLng
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.data.repository.RutaRepository
-import com.smartwarehouse.mobile.ui.MainActivity
 import kotlinx.coroutines.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.smartwarehouse.mobile.ui.login.LoginActivity
 
 /**
  * Servicio para simular movimiento GPS a lo largo de una ruta
@@ -133,7 +133,7 @@ class MockLocationService : Service() {
     }
 
     private fun createNotification(location: LatLng? = null): Notification {
-        val notificationIntent = Intent(this, MainActivity::class.java)
+        val notificationIntent = Intent(this, LoginActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,

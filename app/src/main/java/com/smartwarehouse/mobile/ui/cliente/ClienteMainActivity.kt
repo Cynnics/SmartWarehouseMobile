@@ -8,14 +8,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.ui.login.LoginActivity
-import com.smartwarehouse.mobile.ui.MainViewModel
+import com.smartwarehouse.mobile.ui.login.LoginViewModel
 import com.smartwarehouse.mobile.ui.pedidos.PedidosActivity
 import com.smartwarehouse.mobile.ui.pedidos.crear.CrearPedidoActivity
 import com.smartwarehouse.mobile.ui.perfil.PerfilActivity
 
 class ClienteMainActivity : AppCompatActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: LoginViewModel by viewModels()
 
     private lateinit var tvBienvenida: TextView
     private lateinit var tvSubtitulo: TextView

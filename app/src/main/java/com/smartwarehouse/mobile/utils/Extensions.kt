@@ -23,13 +23,3 @@ fun String.toDate(pattern: String = "yyyy-MM-dd'T'HH:mm:ss"): Date? {
         null
     }
 }
-
-// Extensiones para String
-fun String.isValidEmail(): Boolean {
-    return Patterns.EMAIL_ADDRESS.matcher(this).matches()
-}
-
-// Extensiones para validación de campos
-fun String?.isNullOrBlankOrEmpty(): Boolean {
-    return this == null || this.isBlank() || this.isEmpty()
-}

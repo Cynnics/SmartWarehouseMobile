@@ -60,6 +60,8 @@ interface RutaDao {
 
     @Update
     suspend fun updateRuta(ruta: RutaEntity)
+    @Query("SELECT * FROM rutaentrega WHERE idRuta = :id")
+    suspend fun getRutaById(id: Int): RutaEntity?
 }
 
 @Dao

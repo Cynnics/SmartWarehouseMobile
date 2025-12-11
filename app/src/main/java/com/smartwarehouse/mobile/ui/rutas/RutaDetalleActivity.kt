@@ -241,19 +241,12 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             when (result) {
                 is NetworkResult.Success -> {
                     val pedidos = result.data ?: emptyList()
-
-                    // 🔥 LOG PARA DEBUG
-                    pedidos.forEach {
-                        Log.d("RutaDetalle", "Pedido #${it.id} Dirección: '${it.direccionEntrega}' " +
-                                "Lat: ${it.latitud}, Lng: ${it.longitud}")
-                    }
-
                     tvNumeroPedidos.text = "${pedidos.size} pedidos"
 
                     if (pedidos.isNotEmpty()) {
-                        // Lanzar coroutine para añadir marcadores
+                        // Ejecutar en IO pero asegurando que operaciones de mapa vayan a Main
                         ioScope.launch {
-                            addPedidoMarkers(pedidos)
+                            addPedidoMarkers(pedidos) // dentro de esta función ya pusimos Dispatchers.Main
                         }
                     } else {
                         showToast("Esta ruta no tiene pedidos asignados")
@@ -266,6 +259,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 is NetworkResult.Loading -> {}
             }
         }
+
 
 
         // Observer de cambio de estado
@@ -359,13 +353,11 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     private suspend fun addPedidoMarkers(pedidos: List<Pedido>) {
 
-        // 🔥 Todo lo que sea Google Maps → SIEMPRE DISPATCHERS.MAIN
+        // Todo lo que toque Google Maps → hilo principal
         withContext(Dispatchers.Main) {
             // Limpiar marcadores anteriores
             markers.forEach { it.remove() }
             markers.clear()
-
-            // Mostrar loading
             progressBar.visibility = View.VISIBLE
         }
 
@@ -373,18 +365,15 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         val pedidosConCoords = pedidos.filter { it.tieneCoordenadasValidas() }
         val pedidosSinCoords = pedidos.filter { !it.tieneCoordenadasValidas() }
 
-        // Geocodificar los que no tienen coordenadas (esto sí es background)
+        // Geocodificar los que no tienen coordenadas (esto sí puede ir en IO)
         val pedidosGeocoded = if (pedidosSinCoords.isNotEmpty()) {
             geocodePedidos(pedidosSinCoords)
         } else emptyList()
 
-        // Combinar ubicaciones
-        val pedidosConUbicacion = pedidosConCoords.map { pedido ->
-            PedidoConUbicacion(pedido, pedido.getLatLng()!!)
-        } + pedidosGeocoded
+        val pedidosConUbicacion = pedidosConCoords.map { PedidoConUbicacion(it, it.getLatLng()!!) } + pedidosGeocoded
 
+        // Agregar marcadores y ajustar cámara → hilo principal
         withContext(Dispatchers.Main) {
-
             progressBar.visibility = View.GONE
 
             if (pedidosConUbicacion.isEmpty()) {
@@ -392,7 +381,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 return@withContext
             }
 
-            // Añadir marcadores
             pedidosConUbicacion.forEach { pedidoConUbicacion ->
                 val pedido = pedidoConUbicacion.pedido
                 val location = pedidoConUbicacion.coordenadas
@@ -420,14 +408,12 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                 val builder = LatLngBounds.Builder()
                 markers.forEach { builder.include(it.position) }
                 currentLocationMarker?.let { builder.include(it.position) }
-
                 val bounds = builder.build()
                 val padding = 150
-
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
             }
 
-            // Calcular ruta óptima (debe correr en main si modifica el mapa)
+            // Calcular ruta optimizada → también Main
             calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion)
         }
     }
@@ -572,21 +558,23 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
      * Dibuja la ruta en el mapa
      */
 
-    private fun drawRoute(route: DirectionsRoute) {
-        // Eliminar polilínea anterior
-        currentPolyline?.remove()
+    private suspend fun drawRoute(route: DirectionsRoute) {
+        withContext(Dispatchers.Main) {
+            currentPolyline?.remove()
 
-        // Decodificar polyline
-        val points = decodePolyline(route.polyline)
+            // Decodificar polyline
+            val points = decodePolyline(route.polyline)
 
-        // Dibujar nueva polilínea
-        val polylineOptions = PolylineOptions()
-            .addAll(points)
-            .width(10f)
-            .color(Color.BLUE)
-            .geodesic(true)
+            // Dibujar nueva polilínea
+            val polylineOptions = PolylineOptions()
+                .addAll(points)
+                .width(10f)
+                .color(Color.BLUE)
+                .geodesic(true)
 
-        currentPolyline = map.addPolyline(polylineOptions)
+            currentPolyline = map.addPolyline(polylineOptions)
+        }
+
     }
 
     /**

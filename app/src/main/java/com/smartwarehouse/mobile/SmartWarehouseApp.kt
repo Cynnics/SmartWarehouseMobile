@@ -15,7 +15,7 @@ class SmartWarehouseApp : Application() {
         super.onCreate()
 
         // Inicializar WorkManager para sincronización periódica
-        SyncWorker.Companion.schedule(this)
+        SyncWorker.schedule(this)
 
         // Limpiar cache de geocoding al iniciar
         GeocodingHelper.clearCache()

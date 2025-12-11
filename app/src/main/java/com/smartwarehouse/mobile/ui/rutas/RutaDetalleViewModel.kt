@@ -21,29 +21,16 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
 
     private val rutaRepository = RutaRepository(application)
     private val pedidoRepository = PedidoRepository(application)
-
     private val _ruta = MutableLiveData<NetworkResult<Ruta>>()
     val ruta: LiveData<NetworkResult<Ruta>> = _ruta
-
     private val _pedidos = MutableLiveData<NetworkResult<List<Pedido>>>()
     val pedidos: LiveData<NetworkResult<List<Pedido>>> = _pedidos
-
-    private val _ubicaciones = MutableLiveData<NetworkResult<List<UbicacionRepartidorResponse>>>()
-    val ubicaciones: LiveData<NetworkResult<List<UbicacionRepartidorResponse>>> = _ubicaciones
-
     private val _cambioEstadoResult = MutableLiveData<NetworkResult<Boolean>>()
     val cambioEstadoResult: LiveData<NetworkResult<Boolean>> = _cambioEstadoResult
-
-    private val _ubicacionEnviada = MutableLiveData<NetworkResult<Boolean>>()
-    val ubicacionEnviada: LiveData<NetworkResult<Boolean>> = _ubicacionEnviada
-
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
-
-    // Para el mapa
-    private val _waypoints = MutableLiveData<List<LatLng>>()
-    val waypoints: LiveData<List<LatLng>> = _waypoints
-
+    private val _ubicacionEnviada = MutableLiveData<NetworkResult<Boolean>>()
+    val ubicacionEnviada: LiveData<NetworkResult<Boolean>> = _ubicacionEnviada
     fun cargarRuta(idRuta: Int) {
         _isLoading.value = true
 
@@ -67,14 +54,6 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
-
-    fun cargarUbicacionesRuta(idRuta: Int) {
-        viewModelScope.launch {
-            val result = rutaRepository.getUbicacionesDeRuta(idRuta)
-            _ubicaciones.value = result
-        }
-    }
-
     fun iniciarRuta(idRuta: Int) {
         _isLoading.value = true
 

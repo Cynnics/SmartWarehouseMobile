@@ -824,12 +824,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         return result
     }
 }
-private suspend fun guardarCoordenadasEnCache(pedidoId: Int, coordenadas: LatLng) {
-    // TODO: Implementar si quieres cache persistente
-    // Por ahora GeocodingHelper.geocodingCache hace el trabajo
-}
-
-
 
 /**
  * Data class para la ruta de Directions API

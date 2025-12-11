@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.smartwarehouse.mobile.data.model.response.DetallePedidoConNombre
 import com.smartwarehouse.mobile.data.model.response.DetallePedidoResponse
 import com.smartwarehouse.mobile.data.model.response.Pedido
 import com.smartwarehouse.mobile.data.model.response.TotalesPedidoResponse
@@ -19,22 +18,14 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
 
     private val pedidoRepository = PedidoRepository(application)
     private val authRepository = AuthRepository(application)
-
     private val _pedido = MutableLiveData<NetworkResult<Pedido>>()
     val pedido: LiveData<NetworkResult<Pedido>> = _pedido
-
     private val _detalles = MutableLiveData<NetworkResult<List<DetallePedidoResponse>>>()
     val detalles: LiveData<NetworkResult<List<DetallePedidoResponse>>> = _detalles
-
-    private val _detallesConNombre = MutableLiveData<NetworkResult<List<DetallePedidoConNombre>>>()
-    val detallesConNombre: LiveData<NetworkResult<List<DetallePedidoConNombre>>> = _detallesConNombre
-
     private val _productosMap = MutableLiveData<Map<Int, String>>() // idProducto -> nombreProducto
     val productosMap: LiveData<Map<Int, String>> = _productosMap
-
     private val _cliente = MutableLiveData<NetworkResult<UsuarioResponse>>()
     val cliente: LiveData<NetworkResult<UsuarioResponse>> = _cliente
-
     private val _totales = MutableLiveData<NetworkResult<TotalesPedidoResponse>>()
     val totales: LiveData<NetworkResult<TotalesPedidoResponse>> = _totales
 

@@ -111,27 +111,6 @@ fun Pedido.toEntity(): PedidoEntity {
     )
 }
 
-// DetallePedido
-fun DetallePedidoResponse.toEntity(): DetallePedidoEntity {
-    return DetallePedidoEntity(
-        idDetalle = this.idDetalle,
-        idPedido = this.idPedido,
-        idProducto = this.idProducto,
-        cantidad = this.cantidad,
-        subtotal = this.subtotal
-    )
-}
-
-fun DetallePedidoEntity.toResponse(): DetallePedidoResponse {
-    return DetallePedidoResponse(
-        idDetalle = this.idDetalle,
-        idPedido = this.idPedido,
-        idProducto = this.idProducto,
-        cantidad = this.cantidad,
-        subtotal = this.subtotal
-    )
-}
-
 // Ruta
 fun RutaEntregaResponse.toEntity(): RutaEntity {
     return RutaEntity(

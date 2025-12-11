@@ -71,22 +71,3 @@ data class UbicacionEntity(
     val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )
-
-@Entity(tableName = "usuario")
-data class UsuarioEntity (
-    @PrimaryKey(autoGenerate = true)
-    val idUsuario: Int,
-    val nombre : String,
-    val email : String,
-    val rol : String,
-    val telefono : String,
-    val direccionFacturacion : String?,
-    val nif : Int?
-
-)
-
-@Entity(tableName = "rutapedido", primaryKeys = ["idRuta", "idPedido"])
-data class RutaPedidoEntity(
-    val idRuta: Int,
-    val idPedido: Int
-)

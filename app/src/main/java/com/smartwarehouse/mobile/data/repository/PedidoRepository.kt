@@ -28,9 +28,9 @@ class PedidoRepository(private val context: Context) {
                     val pedidos = response.body()?.map { it.toDomain() } ?: emptyList()
 
                     // 🔥 LOG DETALLADO
-                    android.util.Log.d("PedidoRepo", "Pedidos obtenidos: ${pedidos.size}")
+                    Log.d("PedidoRepo", "Pedidos obtenidos: ${pedidos.size}")
                     pedidos.forEach { pedido ->
-                        android.util.Log.d("PedidoRepo", """
+                        Log.d("PedidoRepo", """
                             Pedido #${pedido.id}
                             - Dirección: ${pedido.direccionEntrega}
                             - Ciudad: ${pedido.ciudad}
@@ -41,11 +41,11 @@ class PedidoRepository(private val context: Context) {
 
                     NetworkResult.Success(pedidos)
                 } else {
-                    android.util.Log.e("PedidoRepo", "Error HTTP: ${response.code()}")
+                    Log.e("PedidoRepo", "Error HTTP: ${response.code()}")
                     NetworkResult.Error("Error al obtener pedidos: ${response.code()}")
                 }
             } catch (e: Exception) {
-                android.util.Log.e("PedidoRepo", "Error de red", e)
+                Log.e("PedidoRepo", "Error de red", e)
                 NetworkResult.Error(
                     when (e) {
                         is UnknownHostException -> "Sin conexión a internet"
@@ -70,7 +70,7 @@ class PedidoRepository(private val context: Context) {
                         ?.map { it.toDomain() }
                         ?: emptyList()
 
-                    android.util.Log.d("PedidoRepo", "Pedidos del cliente $idCliente: ${pedidos.size}")
+                    Log.d("PedidoRepo", "Pedidos del cliente $idCliente: ${pedidos.size}")
 
                     NetworkResult.Success(pedidos)
                 } else {

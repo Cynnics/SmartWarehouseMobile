@@ -47,13 +47,18 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun actualizarPerfil(nombre: String, telefono: String) {
-        // Validaciones
         if (nombre.isBlank()) {
             _actualizarPerfilResult.value = NetworkResult.Error("El nombre es obligatorio")
             return
         }
 
-        if (telefono.isNotBlank() && !isValidPhone(telefono)) {
+        if (nombre.length < 3) {
+            _actualizarPerfilResult.value = NetworkResult.Error("El nombre debe tener al menos 3 caracteres")
+            return
+        }
+
+        // ✅ INLINE - Más claro
+        if (telefono.isNotBlank() && !Regex("^[679]\\d{8}$").matches(telefono.replace(" ", ""))) {
             _actualizarPerfilResult.value = NetworkResult.Error("Teléfono no válido")
             return
         }
@@ -115,12 +120,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             "cliente" -> "Cliente"
             else -> "Sin rol"
         }
-    }
-
-    private fun isValidPhone(phone: String): Boolean {
-        // Validar formato de teléfono español: 9 dígitos, empieza con 6, 7 o 9
-        val regex = Regex("^[679]\\d{8}$")
-        return regex.matches(phone.replace(" ", ""))
     }
 
     private fun getSharedPreferences() =

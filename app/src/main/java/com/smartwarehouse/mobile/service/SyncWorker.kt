@@ -28,15 +28,6 @@ class SyncWorker(
             val productoRepo = ProductoRepository(applicationContext)
             productoRepo.syncProductos()
 
-            // Sincronizar pedidos
-            // val pedidoRepo = PedidoRepository(applicationContext)
-            // pedidoRepo.syncPedidos()
-
-            // Sincronizar rutas
-            // val rutaRepo = RutaRepository(applicationContext)
-            // rutaRepo.syncRutas()
-
-            // Sincronizar ubicaciones pendientes
             syncUbicacionesPendientes()
 
             Result.success()

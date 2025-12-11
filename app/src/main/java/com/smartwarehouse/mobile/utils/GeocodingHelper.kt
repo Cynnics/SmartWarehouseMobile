@@ -69,17 +69,6 @@ object GeocodingHelper {
             }
         }
     }
-
-    /**
-     * Convierte una lista de direcciones en coordenadas
-     * Útil para obtener todas las ubicaciones de una ruta de pedidos
-     */
-    suspend fun geocodeMultipleAddresses(direcciones: List<String>): List<LatLng> {
-        return direcciones.mapNotNull { direccion ->
-            getCoordinatesFromAddress(direccion)
-        }
-    }
-
     /**
      * Valida si una dirección es válida antes de geocodificar
      */

@@ -115,15 +115,6 @@ class PedidosActivity : AppCompatActivity() {
             }
         }
 
-        // 🔥 Observer de loading
-        viewModel.isLoading.observe(this) { isLoading ->
-            swipeRefresh.isRefreshing = isLoading
-            progressBar.visibility = if (isLoading && pedidoAdapter.itemCount == 0) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-        }
     }
 
     private fun setupSwipeRefresh() {

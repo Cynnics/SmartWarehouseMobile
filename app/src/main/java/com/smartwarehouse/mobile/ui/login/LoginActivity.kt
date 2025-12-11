@@ -71,14 +71,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-
-        // Observer para el estado de carga
-        viewModel.isLoading.observe(this) { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            loginButton.isEnabled = !isLoading
-            emailInput.isEnabled = !isLoading
-            passwordInput.isEnabled = !isLoading
-        }
     }
 
     private fun setupListeners() {

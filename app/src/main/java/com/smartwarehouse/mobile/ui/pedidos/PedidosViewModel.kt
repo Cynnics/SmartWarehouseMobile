@@ -23,10 +23,6 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
     private val authRepository = AuthRepository(application)
     private val database = AppDatabase.getInstance(application)
     private val pedidoDao = database.pedidoDao()
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    // 🔥 Flow de Room (pedidos según rol del usuario)
     private val _estadoFiltro = MutableLiveData<String>("todos")
 
     val pedidos: LiveData<List<Pedido>> = _estadoFiltro.switchMap { estado ->
@@ -34,7 +30,6 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
         val userId = authRepository.getUserId()
 
         when {
-            // Cliente: ver solo sus pedidos
             userRole == "cliente" -> {
                 if (estado == "todos") {
                     pedidoDao.getPedidosByCliente(userId)
@@ -46,7 +41,6 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
                         .asLiveData(viewModelScope.coroutineContext)
                 }
             }
-            // Repartidor: ver pedidos asignados
             userRole == "repartidor" -> {
                 if (estado == "todos") {
                     pedidoDao.getPedidosByRepartidor(userId)
@@ -58,7 +52,6 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
                         .asLiveData(viewModelScope.coroutineContext)
                 }
             }
-            // Admin/Empleado: ver todos
             else -> {
                 if (estado == "todos") {
                     pedidoDao.getAllPedidos()
@@ -74,38 +67,23 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
     }
 
     init {
-        // Sincronizar al iniciar
         sincronizarPedidos()
     }
 
+    // ✅ SIMPLIFICADO - Sin isLoading redundante
     fun sincronizarPedidos(forzarTodos: Boolean = false) {
         viewModelScope.launch {
-            _isLoading.value = true
+            val userRole = authRepository.getUserRole()
+            val result = when {
+                forzarTodos -> pedidoRepository.getPedidos()
+                userRole == "cliente" -> pedidoRepository.getPedidosCliente()
+                userRole == "repartidor" -> pedidoRepository.getPedidosRepartidor()
+                else -> pedidoRepository.getPedidos()
+            }
 
-            try {
-                val userRole = authRepository.getUserRole()
-
-                // Sincronizar según rol o forzar todos
-                val result = when {
-                    forzarTodos -> pedidoRepository.getPedidos() // TODOS los pedidos
-                    userRole == "cliente" -> pedidoRepository.getPedidosCliente()
-                    userRole == "repartidor" -> pedidoRepository.getPedidosRepartidor()
-                    else -> pedidoRepository.getPedidos()
-                }
-
-                if (result is NetworkResult.Success) {
-                    // Guardar en Room
-                    val entities = result.data?.map { it.toEntity() } ?: emptyList()
-                    entities.forEach { pedidoDao.insertPedido(it) }
-
-                    android.util.Log.d("PedidosVM", "Sincronizados ${entities.size} pedidos para rol: $userRole")
-                } else if (result is NetworkResult.Error) {
-                    android.util.Log.e("PedidosVM", "Error: ${result.message}")
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("PedidosVM", "Error al sincronizar", e)
-            } finally {
-                _isLoading.value = false
+            if (result is NetworkResult.Success) {
+                val entities = result.data?.map { it.toEntity() } ?: emptyList()
+                entities.forEach { pedidoDao.insertPedido(it) }
             }
         }
     }
@@ -113,6 +91,4 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
     fun filtrarPorEstado(estado: String) {
         _estadoFiltro.value = estado
     }
-
-
 }

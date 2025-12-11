@@ -9,10 +9,8 @@ class SessionManager(context: Context) {
         Constants.PREFS_NAME,
         Context.MODE_PRIVATE
     )
-
     // Token en memoria
     private var memoryToken: String? = null
-
     companion object {
         @Volatile
         private var INSTANCE: SessionManager? = null
@@ -23,7 +21,6 @@ class SessionManager(context: Context) {
             }
         }
     }
-
     // Guardar token y datos de usuario
     fun saveAuthToken(loginResponse: LoginResponse) {
         memoryToken = loginResponse.token // Solo en memoria
@@ -36,42 +33,30 @@ class SessionManager(context: Context) {
             apply()
         }
     }
-
     // Obtener token
     fun getAuthToken(): String? {
         return memoryToken
     }
-
     // Verificar si el usuario está autenticado
     fun isLoggedIn(): Boolean {
-
         return memoryToken != null
-        //val token = getAuthToken()
-        //val expiry = prefs.getLong(Constants.KEY_TOKEN_EXPIRY, 0)
-        //return token != null && System.currentTimeMillis() < expiry
     }
-
     // Obtener ID del usuario
     fun getUserId(): Int {
         return prefs.getInt(Constants.KEY_USER_ID, -1)
     }
-
     // Obtener email del usuario
     fun getUserEmail(): String? {
         return prefs.getString(Constants.KEY_USER_EMAIL, null)
     }
-
     // Obtener nombre del usuario
     fun getUserName(): String? {
         return prefs.getString(Constants.KEY_USER_NAME, null)
     }
-
     // Obtener rol del usuario
     fun getUserRole(): String? {
         return prefs.getString(Constants.KEY_USER_ROLE, null)
     }
-
-
     // Cerrar sesión
     fun clearSession() {
         memoryToken = null

@@ -1,6 +1,5 @@
 package com.smartwarehouse.mobile.data.model.response
 
-import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 
 // Modelo de respuesta de la API
@@ -66,8 +65,7 @@ data class Ruta(
     val fechaRuta: String,
     val distanciaEstimadaKm: Double?,
     val duracionEstimadaMin: Int?,
-    val estado: EstadoRuta,
-    val pedidos: List<PedidoConDireccion> = emptyList()
+    val estado: EstadoRuta
 ) {
     fun getEstadoColor(): Int {
         return when (estado) {
@@ -110,19 +108,6 @@ enum class EstadoRuta {
         }
     }
 }
-
-// Modelo para pedidos con dirección (para el mapa)
-data class PedidoConDireccion(
-    val idPedido: Int,
-    val direccion: String,
-    val latitud: Double,
-    val longitud: Double,
-    val estado: String,
-    val nombreCliente: String? = null
-) {
-    fun toLatLng(): LatLng = LatLng(latitud, longitud)
-}
-
 // Extensión para convertir Response a modelo de dominio
 fun RutaEntregaResponse.toDomain(): Ruta {
     return Ruta(
@@ -135,6 +120,3 @@ fun RutaEntregaResponse.toDomain(): Ruta {
     )
 }
 
-fun UbicacionRepartidorResponse.toLatLng(): LatLng {
-    return LatLng(latitud, longitud)
-}

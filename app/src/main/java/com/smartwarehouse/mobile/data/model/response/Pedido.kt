@@ -60,17 +60,6 @@ data class DetallePedidoResponse(
     val subtotal: Double
 )
 
-data class DetallePedidoConNombre(
-    val idDetalle: Int,
-    val idPedido: Int,
-    val idProducto: Int,
-    val cantidad: Int,
-    val subtotal: Double,
-    val nombreProducto: String
-)
-
-
-
 // Modelo de totales del pedido
 data class TotalesPedidoResponse(
     @SerializedName("subtotal")
@@ -81,11 +70,6 @@ data class TotalesPedidoResponse(
 
     @SerializedName("total")
     val total: Double
-)
-
-// Request para cambiar estado
-data class CambiarEstadoPedidoRequest(
-    val nuevoEstado: String
 )
 
 // Modelo de dominio (para la UI)

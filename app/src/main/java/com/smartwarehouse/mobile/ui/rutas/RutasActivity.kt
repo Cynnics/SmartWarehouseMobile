@@ -69,10 +69,11 @@ class RutasActivity : AppCompatActivity() {
             } else {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
-                rutaAdapter.submitList(rutas) {
-                    // ✅ Scroll al inicio tras actualizar lista
-                    recyclerView.scrollToPosition(0)
-                }
+
+                // ✅ Forzar scroll al inicio ANTES de actualizar lista
+                recyclerView.scrollToPosition(0)
+
+                rutaAdapter.submitList(rutas)
             }
 
             // ✅ Cerrar loading DESPUÉS de recibir datos

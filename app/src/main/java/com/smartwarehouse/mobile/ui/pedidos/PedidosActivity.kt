@@ -103,13 +103,6 @@ class PedidosActivity : AppCompatActivity() {
         viewModel.pedidos.observe(this) { pedidos ->
             android.util.Log.d("PedidosActivity", "Pedidos recibidos: ${pedidos.size}")
 
-            pedidoAdapter.submitList(pedidos) {
-                // ✅ Scroll al inicio tras actualizar lista
-                if (pedidos.isNotEmpty()) {
-                    recyclerView.scrollToPosition(0)
-                }
-            }
-
             if (pedidos.isEmpty()) {
                 emptyView.visibility = View.VISIBLE
                 recyclerView.visibility = View.GONE
@@ -117,6 +110,11 @@ class PedidosActivity : AppCompatActivity() {
             } else {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
+
+                // ✅ Forzar scroll al inicio ANTES de actualizar lista
+                recyclerView.scrollToPosition(0)
+
+                pedidoAdapter.submitList(pedidos)
             }
 
             // ✅ Cerrar loading DESPUÉS de recibir datos

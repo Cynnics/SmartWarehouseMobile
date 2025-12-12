@@ -68,6 +68,8 @@ class TodasRutasActivity : AppCompatActivity() {
             } else {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
+                // ✅ Forzar scroll al inicio ANTES de actualizar lista
+                recyclerView.scrollToPosition(0)
                 rutaAdapter.submitList(rutas)
             }
 

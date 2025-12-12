@@ -83,7 +83,7 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
 
-
+                // 🔥 GUARDAR COPIA DE LOS ITEMS ANTES DE CUALQUIER COSA
                 val itemsParaActualizar = carrito.items.map { item ->
                     ItemCarrito(item.producto, item.cantidad)
                 }.toList()
@@ -91,7 +91,7 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
                 Log.d("CarritoViewModel", "Items guardados para actualizar: ${itemsParaActualizar.size}")
 
                 // 🔥 PASO 1: VERIFICAR STOCK ANTES DE CREAR EL PEDIDO
-                val (stockValido, mensajeStock) = productoRepository.verificarStockDisponible(carrito.items)
+                val (stockValido, mensajeStock) = productoRepository.verificarStockDisponible(itemsParaActualizar)
                 if (!stockValido) {
                     _crearPedidoResult.value = NetworkResult.Error(mensajeStock)
                     _isLoading.value = false

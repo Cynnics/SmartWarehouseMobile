@@ -168,7 +168,7 @@ class MockLocationService : Service() {
         super.onDestroy()
         simulationJob?.cancel()
         serviceScope.cancel()
-        isMocking = false
+        isMocking = false  // ✅ Asegurar que se actualiza INMEDIATAMENTE
         dynamicRoute = null
         android.util.Log.d("MockLocation", "Simulación de GPS detenida")
     }

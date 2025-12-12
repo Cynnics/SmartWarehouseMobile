@@ -75,7 +75,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
         tvFechaPedido = findViewById(R.id.tvFechaPedido)
         tvFechaEntrega = findViewById(R.id.tvFechaEntrega)
 
-        // Verificar si existe cardCliente (para repartidores)
         try {
             cardCliente = findViewById(R.id.cardCliente)
             tvNombreCliente = findViewById(R.id.tvNombreCliente)
@@ -84,7 +83,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
             btnLlamarCliente = findViewById(R.id.btnLlamarCliente)
             btnVerMapa = findViewById(R.id.btnVerMapa)
         } catch (e: Exception) {
-            // Si no existen estas vistas, no pasa nada
             android.util.Log.w("PedidoDetalle", "Vistas de cliente no encontradas")
         }
 
@@ -105,7 +103,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // Observer del pedido
         viewModel.pedido.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -120,8 +117,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
                 is NetworkResult.Loading -> {}
             }
         }
-
-        // Observer de detalles
         viewModel.detalles.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -133,8 +128,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
                 is NetworkResult.Loading -> {}
             }
         }
-
-        // Observer de totales
         viewModel.totales.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -152,8 +145,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
                 is NetworkResult.Loading -> {}
             }
         }
-
-        // Observer de cambio de estado
         viewModel.cambioEstadoResult.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -165,8 +156,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
                 is NetworkResult.Loading -> {}
             }
         }
-
-        // Observer de loading
         viewModel.isLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
@@ -213,11 +202,9 @@ class PedidoDetalleActivity : AppCompatActivity() {
             tvFechaEntrega.visibility = View.GONE
         }
 
-        // Solo mostrar info del cliente si el usuario es repartidor
         if (::cardCliente.isInitialized) {
             if (viewModel.esRepartidor() || viewModel.esAdministradorEmpleado()) {
                 cardCliente.visibility = View.VISIBLE
-                // Inicialmente mostramos info básica mientras llega el observer del cliente
                 tvNombreCliente.text = "Cliente #${pedido.idCliente}"
                 tvDireccionCliente.text = pedido.direccionEntrega ?: "Dirección no disponible"
                 tvTelefonoCliente.text = "Teléfono no disponible"
@@ -229,7 +216,6 @@ class PedidoDetalleActivity : AppCompatActivity() {
 
 
     private fun configurarBotones(pedido: com.smartwarehouse.mobile.data.model.response.Pedido) {
-        // Solo repartidores pueden cambiar estados
         val puedeModificar = viewModel.esRepartidor() &&
                 pedido.idRepartidor == viewModel.getUserId()
 

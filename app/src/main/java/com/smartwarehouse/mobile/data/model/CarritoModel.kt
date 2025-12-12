@@ -2,7 +2,6 @@ package com.smartwarehouse.mobile.data.model
 
 import com.smartwarehouse.mobile.data.model.response.ProductoResponse
 
-// Item del carrito (producto + cantidad)
 data class ItemCarrito(
     val producto: ProductoResponse,
     var cantidad: Int = 1
@@ -22,7 +21,6 @@ data class ItemCarrito(
     }
 }
 
-// Modelo del carrito completo
 data class Carrito(
     val items: MutableList<ItemCarrito> = mutableListOf()
 ) {

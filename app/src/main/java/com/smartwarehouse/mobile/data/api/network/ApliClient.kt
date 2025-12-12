@@ -18,21 +18,17 @@ object ApiClient {
     private fun getOkHttpClient(context: Context): OkHttpClient {
         val sessionManager = SessionManager.getInstance(context)
 
-        // Interceptor para logging (solo en debug)
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
-        // Interceptor para añadir token JWT
         val authInterceptor = Interceptor { chain ->
             val requestBuilder = chain.request().newBuilder()
 
-            // Añadir token si existe
             sessionManager.getAuthToken()?.let { token ->
                 requestBuilder.addHeader("Authorization", "Bearer $token")
             }
 
-            // Añadir headers adicionales
             requestBuilder.addHeader("Content-Type", "application/json")
             requestBuilder.addHeader("Accept", "application/json")
 

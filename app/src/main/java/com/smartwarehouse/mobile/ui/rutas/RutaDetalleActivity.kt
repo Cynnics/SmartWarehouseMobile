@@ -60,11 +60,8 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     private var currentPolyline: Polyline? = null
     private var currentLocationMarker: Marker? = null
 
-    // Coroutine scope para llamadas asíncronas
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-
-    // Permission launcher
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -133,17 +130,14 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        // Configurar estilo del mapa
         map.uiSettings.apply {
             isZoomControlsEnabled = true
             isCompassEnabled = true
             isMyLocationButtonEnabled = true
         }
 
-        // Solicitar permisos de ubicación
         checkLocationPermission()
 
-        // Centrar el mapa en Madrid por defecto
         val madrid = LatLng(40.4168, -3.7038)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(madrid, 12f))
     }
@@ -154,12 +148,10 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
 
-        // Añadir permiso de foreground service si es necesario
         if (Build   .VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             permissions.add(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
         }
 
-        // Añadir permiso de notificaciones si es necesario
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -184,13 +176,11 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         ) {
             map.isMyLocationEnabled = true
 
-            // Obtener ubicación actual
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val currentLatLng = LatLng(it.latitude, it.longitude)
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 14f))
 
-                    // Enviar ubicación al servidor
                     viewModel.enviarUbicacionActual(it.latitude, it.longitude)
                 }
             }
@@ -198,7 +188,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupObservers() {
-        // Observer de la ruta
         viewModel.ruta.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -209,7 +198,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                         tvDistancia.text = ruta.getDistanciaTexto()
                         tvDuracion.text = ruta.getDuracionTexto()
 
-                        // Configurar visibilidad de botones según estado
                         when (ruta.estado) {
                             com.smartwarehouse.mobile.data.model.response.EstadoRuta.PENDIENTE -> {
                                 btnIniciarRuta.visibility = View.VISIBLE
@@ -236,7 +224,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // Observer de pedidos
         viewModel.pedidos.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -244,9 +231,9 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     tvNumeroPedidos.text = "${pedidos.size} pedidos"
 
                     if (pedidos.isNotEmpty()) {
-                        // Ejecutar en IO pero asegurando que operaciones de mapa vayan a Main
+
                         ioScope.launch {
-                            addPedidoMarkers(pedidos) // dentro de esta función ya pusimos Dispatchers.Main
+                            addPedidoMarkers(pedidos)
                         }
                     } else {
                         showToast("Esta ruta no tiene pedidos asignados")
@@ -261,14 +248,11 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
 
-
-        // Observer de cambio de estado
         viewModel.cambioEstadoResult.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
                     showToast("✅ Ruta actualizada correctamente")
 
-                    // 🔥 RECARGAR DATOS
                     viewModel.cargarRuta(idRuta)
                     viewModel.cargarPedidosDeRuta(idRuta)
                 }
@@ -279,7 +263,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // Observer de loading
         viewModel.isLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
@@ -326,9 +309,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             .show()
     }
 
-    /**
-     * 🔥 NUEVO: Confirmar completar ruta
-     */
     private fun confirmarCompletarRuta() {
         val numPedidos = (viewModel.pedidos.value as? NetworkResult.Success)?.data?.size ?: 0
 
@@ -348,9 +328,7 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             .setNegativeButton("Cancelar", null)
             .show()
     }
-    /**
-     * Añade marcadores en el mapa para cada pedido
-     */
+
     private suspend fun addPedidoMarkers(pedidos: List<Pedido>) {
 
         // Todo lo que toque Google Maps → hilo principal
@@ -418,10 +396,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-
-    /**
-     * Calcula la ruta optimizada usando Directions API
-     */
     private fun calculateOptimizedRouteWithRealCoordinates(pedidosConUbicacion: List<PedidoConUbicacion>) {
         if (pedidosConUbicacion.isEmpty()) return
 
@@ -438,10 +412,8 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     return@launch
                 }
 
-                // Extraer coordenadas de los pedidos
                 val waypoints = pedidosConUbicacion.map { it.coordenadas }
 
-                // Llamar a Directions API
                 val route = getDirectionsRoute(origin, waypoints)
 
                 withContext(Dispatchers.Main) {
@@ -467,9 +439,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    /**
-     * Obtiene la ubicación actual del dispositivo de forma síncrona
-     */
     private suspend fun getCurrentLocation(): LatLng? {
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
@@ -494,18 +463,13 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    /**
-     * Llama a Google Directions API para obtener la ruta
-     */
     private suspend fun getDirectionsRoute(origin: LatLng, waypoints: List<LatLng>): DirectionsRoute? {
         return withContext(Dispatchers.IO) {
             try {
                 val apiKey = Constants.GOOGLE_MAPS_API_KEY
 
-                // Construir waypoints string
                 val waypointsStr = waypoints.joinToString("|") { "${it.latitude},${it.longitude}" }
 
-                // URL de Directions API
                 val url = "https://maps.googleapis.com/maps/api/directions/json?" +
                         "origin=${origin.latitude},${origin.longitude}" +
                         "&destination=${waypoints.last().latitude},${waypoints.last().longitude}" +
@@ -526,7 +490,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                             val polyline = route.getJSONObject("overview_polyline").getString("points")
                             val legs = route.getJSONArray("legs")
 
-                            // Calcular distancia y duración total
                             var totalDistance = 0
                             var totalDuration = 0
                             for (i in 0 until legs.length()) {
@@ -554,18 +517,12 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    /**
-     * Dibuja la ruta en el mapa
-     */
-
     private suspend fun drawRoute(route: DirectionsRoute) {
         withContext(Dispatchers.Main) {
             currentPolyline?.remove()
 
-            // Decodificar polyline
             val points = decodePolyline(route.polyline)
 
-            // Dibujar nueva polilínea
             val polylineOptions = PolylineOptions()
                 .addAll(points)
                 .width(10f)
@@ -577,9 +534,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    /**
-     * Actualiza la información de distancia y duración
-     */
     private fun updateRouteInfo(route: DirectionsRoute) {
         val distanceKm = route.distanceMeters / 1000.0
         val durationMin = route.durationSeconds / 60
@@ -588,9 +542,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         tvDuracion.text = "$durationMin min"
     }
 
-    /**
-     * Decodifica un polyline de Google Maps
-     */
     private fun decodePolyline(encoded: String): List<LatLng> {
         val poly = ArrayList<LatLng>()
         var index = 0
@@ -634,7 +585,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             return
         }
 
-        // Obtener primer pedido
         val primerPedido = getLocationForPedido(0)
         val destino = "${primerPedido.latitude},${primerPedido.longitude}"
 
@@ -650,7 +600,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getLocationForPedido(index: Int): LatLng {
-        // Coordenadas de ejemplo en Madrid
         val baseLocations = listOf(
             LatLng(40.4168, -3.7038),  // Puerta del Sol
             LatLng(40.4200, -3.7050),  // Gran Vía
@@ -674,20 +623,17 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     private suspend fun geocodePedidos(pedidos: List<Pedido>): List<PedidoConUbicacion> {
         return withContext(Dispatchers.IO) {
             pedidos.mapNotNull { pedido ->
-                // Validar que tenga dirección
                 if (!GeocodingHelper.isValidAddress(pedido.direccionEntrega)) {
                     Log.w("RutaDetalle", "Pedido ${pedido.id} sin dirección válida")
                     return@mapNotNull null
                 }
 
-                // Normalizar dirección (añadir ciudad/país si falta)
                 val direccionNormalizada = GeocodingHelper.normalizeAddress(
                     pedido.direccionEntrega ?: "",
                     ciudad = "Madrid",
                     pais = "España"
                 )
 
-                // Geocodificar con cache
                 val coordinates = GeocodingHelper.getCoordinatesFromAddressWithCache(direccionNormalizada)
 
                 if (coordinates != null) {
@@ -714,7 +660,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
 
         ioScope.launch {
             try {
-                // 1. Obtener ubicación actual
                 val origin = getCurrentLocation() ?: run {
                     withContext(Dispatchers.Main) {
                         showToast("No se pudo obtener tu ubicación actual")
@@ -723,7 +668,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     return@launch
                 }
 
-                // 2. Geocodificar pedidos si es necesario
                 val pedidosConUbicacion = mutableListOf<PedidoConUbicacion>()
 
                 for (pedido in pedidos) {
@@ -749,7 +693,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     return@launch
                 }
 
-                // 3. Obtener ruta de Directions API
                 val waypoints = pedidosConUbicacion.map { it.coordenadas }
                 val route = getDirectionsRoute(origin, waypoints)
 
@@ -757,18 +700,14 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
                     progressBar.visibility = View.GONE
 
                     if (route != null) {
-                        // 4. Decodificar polyline en puntos
                         val routePoints = decodePolyline(route.polyline)
 
-                        // 5. Interpolar puntos (para que la simulación sea más suave)
                         val interpolatedPoints = interpolateRoute(routePoints, 50)
 
-                        // 6. Iniciar simulación con estos puntos
                         MockLocationService.startMocking(this@RutaDetalleActivity, interpolatedPoints)
 
                         showToast("🧪 Simulación iniciada con ruta real (${interpolatedPoints.size} puntos)")
 
-                        // 7. Abrir TrackingControlActivity
                         val intent = Intent(this@RutaDetalleActivity, TrackingControlActivity::class.java)
                         startActivity(intent)
                     } else {
@@ -785,9 +724,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    /**
-     * Interpola puntos en una ruta para simulación más suave
-     */
     private fun interpolateRoute(points: List<LatLng>, targetPoints: Int): List<LatLng> {
         if (points.size >= targetPoints) return points
 
@@ -797,7 +733,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
             val start = points[i]
             val end = points[i + 1]
 
-            // Calcular cuántos puntos interpolar entre estos dos
             val steps = targetPoints / (points.size - 1)
 
             for (step in 0 until steps) {
@@ -813,9 +748,6 @@ class RutaDetalleActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 }
 
-/**
- * Data class para la ruta de Directions API
- */
 data class DirectionsRoute(
     val polyline: String,
     val distanceMeters: Int,

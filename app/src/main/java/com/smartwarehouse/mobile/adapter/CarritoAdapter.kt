@@ -42,11 +42,9 @@ class CarritoAdapter(
             tvCantidad.text = item.cantidad.toString()
             tvSubtotal.text = String.format("%.2f €", item.getSubtotal())
 
-            // Deshabilitar botón menos si cantidad es 1
             btnMenos.isEnabled = item.cantidad > 1
             btnMenos.alpha = if (item.cantidad > 1) 1.0f else 0.5f
 
-            // Deshabilitar botón más si alcanzó el stock
             btnMas.isEnabled = item.cantidad < item.producto.stock
             btnMas.alpha = if (item.cantidad < item.producto.stock) 1.0f else 0.5f
 

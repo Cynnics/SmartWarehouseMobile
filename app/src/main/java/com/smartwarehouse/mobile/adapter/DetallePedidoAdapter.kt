@@ -16,7 +16,7 @@ class DetallePedidoAdapter : ListAdapter<DetallePedidoResponse, DetallePedidoAda
 
     fun setProductosMap(map: Map<Int, String>) {
         productosMap = map
-        notifyDataSetChanged() // refresca la lista
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetalleViewHolder {

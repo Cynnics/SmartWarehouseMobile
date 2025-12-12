@@ -70,7 +70,6 @@ class PedidosViewModel(application: Application) : AndroidViewModel(application)
         sincronizarPedidos()
     }
 
-    // ✅ SIMPLIFICADO - Sin isLoading redundante
     fun sincronizarPedidos(forzarTodos: Boolean = false) {
         viewModelScope.launch {
             val userRole = authRepository.getUserRole()

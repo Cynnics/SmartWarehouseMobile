@@ -99,7 +99,6 @@ class PedidosActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // 🔥 Observer de pedidos (desde Room)
         viewModel.pedidos.observe(this) { pedidos ->
             android.util.Log.d("PedidosActivity", "Pedidos recibidos: ${pedidos.size}")
 
@@ -111,13 +110,11 @@ class PedidosActivity : AppCompatActivity() {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
 
-                // ✅ Forzar scroll al inicio ANTES de actualizar lista
                 recyclerView.scrollToPosition(0)
 
                 pedidoAdapter.submitList(pedidos)
             }
 
-            // ✅ Cerrar loading DESPUÉS de recibir datos
             swipeRefresh.isRefreshing = false
         }
 
@@ -142,7 +139,6 @@ class PedidosActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Recargar pedidos al volver (por si cambió algún estado)
         viewModel.sincronizarPedidos()
     }
 }

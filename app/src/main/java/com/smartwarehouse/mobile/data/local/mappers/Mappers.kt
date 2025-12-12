@@ -3,7 +3,6 @@ package com.smartwarehouse.mobile.data.local.mappers
 import com.smartwarehouse.mobile.data.local.entity.*
 import com.smartwarehouse.mobile.data.model.response.*
 
-// Producto
 fun ProductoResponse.toEntity(): ProductoEntity {
     return ProductoEntity(
         idProducto = this.idProducto,
@@ -28,7 +27,6 @@ fun ProductoEntity.toResponse(): ProductoResponse {
     )
 }
 
-// Pedido
 fun PedidoResponse.toEntity(): PedidoEntity {
     return PedidoEntity(
         idPedido = this.idPedido,
@@ -111,7 +109,6 @@ fun Pedido.toEntity(): PedidoEntity {
     )
 }
 
-// Ruta
 fun RutaEntregaResponse.toEntity(): RutaEntity {
     return RutaEntity(
         idRuta = this.idRuta,
@@ -145,7 +142,6 @@ fun RutaEntity.toDomain(): Ruta {
     )
 }
 
-// Ubicación
 fun UbicacionRepartidorResponse.toEntity(idRepartidor: Int): UbicacionEntity {
     return UbicacionEntity(
         idUbicacion = this.idUbicacion,

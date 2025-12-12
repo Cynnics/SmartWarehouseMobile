@@ -106,7 +106,7 @@ class PerfilActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_EDITAR_PERFIL && resultCode == RESULT_OK) {
-            // Recargar datos del perfil
+
             val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
             tvNombre.text = prefs.getString("nombre", "Sin nombre")
             tvTelefono.text = prefs.getString("telefono", "Sin teléfono")

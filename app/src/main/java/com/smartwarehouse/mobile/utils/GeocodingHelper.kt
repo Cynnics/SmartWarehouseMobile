@@ -9,25 +9,16 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.net.URLEncoder
 
-/**
- * Helper para convertir direcciones en coordenadas usando Geocoding API
- */
+
 object GeocodingHelper {
 
     private val client = OkHttpClient()
 
-    /**
-     * Convierte una dirección de texto en coordenadas LatLng
-     *
-     * @param direccion Dirección completa (ej: "Calle Gran Vía 28, Madrid, España")
-     * @return LatLng o null si no se encuentra
-     */
     suspend fun getCoordinatesFromAddress(direccion: String): LatLng? {
         return withContext(Dispatchers.IO) {
             try {
                 val apiKey = Constants.GOOGLE_MAPS_API_KEY
 
-                // URL encode de la dirección
                 val encodedAddress = URLEncoder.encode(direccion, "UTF-8")
 
                 val url = "https://maps.googleapis.com/maps/api/geocode/json?" +
@@ -69,17 +60,9 @@ object GeocodingHelper {
             }
         }
     }
-    /**
-     * Valida si una dirección es válida antes de geocodificar
-     */
     fun isValidAddress(direccion: String?): Boolean {
         return !direccion.isNullOrBlank() && direccion.length > 5
     }
-
-    /**
-     * Normaliza una dirección para mejorar resultados de geocoding
-     * Añade "España" o la ciudad si no está presente
-     */
     fun normalizeAddress(direccion: String, ciudad: String = "Madrid", pais: String = "España"): String {
         var normalized = direccion.trim()
 
@@ -95,10 +78,6 @@ object GeocodingHelper {
 
         return normalized
     }
-
-    /**
-     * Cache simple en memoria para evitar llamadas repetidas
-     */
     private val geocodingCache = mutableMapOf<String, LatLng>()
 
     suspend fun getCoordinatesFromAddressWithCache(direccion: String): LatLng? {
@@ -115,10 +94,6 @@ object GeocodingHelper {
 
         return coordinates
     }
-
-    /**
-     * Limpia la cache de geocoding
-     */
     fun clearCache() {
         geocodingCache.clear()
     }

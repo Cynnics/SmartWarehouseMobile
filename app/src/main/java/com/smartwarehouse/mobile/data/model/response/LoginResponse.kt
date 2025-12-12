@@ -16,7 +16,6 @@ data class UsuarioResponse (
 
 
 
-// Modelo para respuestas de error de la API
 data class ApiErrorResponse(
     val message: String,
     val errors: Map<String, List<String>>? = null

@@ -14,9 +14,7 @@ import com.smartwarehouse.mobile.data.repository.ProductoRepository
 import com.smartwarehouse.mobile.data.repository.RutaRepository
 import java.util.concurrent.TimeUnit
 
-/**
- * Worker para sincronización periódica de datos
- */
+
 class SyncWorker(
     context: Context,
     params: WorkerParameters
@@ -24,7 +22,6 @@ class SyncWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            // Sincronizar productos
             val productoRepo = ProductoRepository(applicationContext)
             productoRepo.syncProductos()
 
@@ -45,18 +42,15 @@ class SyncWorker(
         val ubicacionDao = database.ubicacionDao()
         val rutaRepo = RutaRepository(applicationContext)
 
-        // Obtener ubicaciones no sincronizadas
         val ubicaciones = ubicacionDao.getUbicacionesNoSincronizadas()
 
         ubicaciones.forEach { ubicacion ->
             try {
-                // Enviar a la API
                 rutaRepo.enviarUbicacion(ubicacion.latitud, ubicacion.longitud)
 
-                // Marcar como sincronizada
                 ubicacionDao.marcarComoSincronizada(ubicacion.id)
             } catch (e: Exception) {
-                // Log error pero continuar con siguientes
+
                 Log.e("SyncWorker", "Error sync ubicacion", e)
             }
         }

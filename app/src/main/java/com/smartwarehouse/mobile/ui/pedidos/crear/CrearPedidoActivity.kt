@@ -14,7 +14,6 @@ class CrearPedidoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Redirigir directamente al catálogo
         val intent = Intent(this, CatalogoActivity::class.java)
         startActivity(intent)
         finish()

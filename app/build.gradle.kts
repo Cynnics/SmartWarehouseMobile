@@ -40,13 +40,12 @@ android {
 
     buildFeatures {
         compose = true
-        viewBinding = true  // Importante: habilitar ViewBinding para usar con Activities
+        viewBinding = true
     }
     buildToolsVersion = "36.1.0"
 }
 
 dependencies {
-    // Compose (de tu configuración original)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,7 +55,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    // Core Android (para Activities tradicionales)
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

@@ -8,11 +8,11 @@
     <!-- Permisos de ubicación -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Permiso para servicio en foreground (Android 9+) -->
+    <!-- Permiso para servicio en foreground -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Permiso específico para tracking de ubicación (Android 10+) -->
+    <!-- Permiso específico para tracking de ubicación  -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <!-- Permiso para notificaciones (Android 13+) -->
+    <!-- Permiso para notificaciones -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Para que la app pueda ejecutarse en background -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -66,7 +66,7 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Crear Pedido (pendiente de implementar) -->
+        <!-- Crear Pedido -->
         <activity
             android:name=".ui.pedidos.crear.CrearPedidoActivity"
             android:exported="false"

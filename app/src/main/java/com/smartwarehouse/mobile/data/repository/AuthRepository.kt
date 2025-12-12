@@ -27,12 +27,10 @@ class AuthRepository(private val context: Context) {
 
                 if (response.isSuccessful) {
                     response.body()?.let { loginResponse ->
-                        // Guardar token y datos de usuario
                         sessionManager.saveAuthToken(loginResponse)
                         NetworkResult.Success(loginResponse)
                     } ?: NetworkResult.Error("Respuesta vacía del servidor")
                 } else {
-                    // Parsear error de la API
                     val errorBody = response.errorBody()?.string()
                     val errorMessage = try {
                         val errorResponse = Gson().fromJson(errorBody, ApiErrorResponse::class.java)

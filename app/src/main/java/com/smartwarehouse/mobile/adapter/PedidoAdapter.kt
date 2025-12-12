@@ -38,15 +38,12 @@ class PedidoAdapter(
             tvIdPedido.text = "Pedido #${pedido.id}"
             tvEstado.text = pedido.getEstadoTexto()
 
-            // Formatear fecha
             val fecha = pedido.fechaPedido.toDate()?.toFormattedString("dd/MM/yyyy HH:mm")
                 ?: pedido.fechaPedido
             tvFecha.text = fecha
 
-            // Color del indicador según estado
             estadoIndicator.setBackgroundColor(pedido.getEstadoColor())
 
-            // Click listener
             cardView.setOnClickListener {
                 onPedidoClick(pedido)
             }

@@ -46,7 +46,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
     private val routePoints = mutableListOf<LatLng>()
     private var updateCount = 0
 
-    // BroadcastReceiver para escuchar actualizaciones de ubicación
     private val locationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val lat = intent?.getDoubleExtra("latitude", 0.0) ?: 0.0
@@ -124,7 +123,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
             isMyLocationButtonEnabled = true
         }
 
-        // Centrar en Madrid por defecto
         val madrid = LatLng(40.4168, -3.7038)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(madrid, 13f))
 
@@ -155,7 +153,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
                 return@setOnClickListener
             }
 
-            // Limpiar mapa
             clearMap()
 
             if (switchModoSimulacion.isChecked) {
@@ -254,7 +251,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
         btnIniciarTracking.isEnabled = !isAnyServiceActive
         btnDetenerTracking.isEnabled = isAnyServiceActive
 
-        // ✅ Actualizar estado del switch según servicio activo
         switchModoSimulacion.isChecked = MockLocationService.isMocking
         switchModoSimulacion.isEnabled = !isAnyServiceActive
     }
@@ -268,7 +264,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val location = LatLng(lat, lng)
 
-        // Actualizar texto de ubicación
         val locationText = """
             ${if (isMock) "🧪 SIMULADO" else "📍 REAL"}
             Lat: ${String.format("%.6f", lat)}
@@ -277,10 +272,8 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
         """.trimIndent()
         tvUltimaUbicacion.text = locationText
 
-        // Añadir punto a la ruta
         routePoints.add(location)
 
-        // Actualizar o crear marcador
         if (currentMarker == null) {
             currentMarker = map.addMarker(
                 MarkerOptions()
@@ -297,7 +290,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
             map.animateCamera(CameraUpdateFactory.newLatLng(location))
         }
 
-        // Dibujar línea de la ruta
         updatePolyline()
     }
 
@@ -329,7 +321,6 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
 
-        // Registrar receiver para actualizaciones de ubicación
         val filter = IntentFilter("LOCATION_UPDATE")
         LocalBroadcastManager.getInstance(this).registerReceiver(locationReceiver, filter)
 

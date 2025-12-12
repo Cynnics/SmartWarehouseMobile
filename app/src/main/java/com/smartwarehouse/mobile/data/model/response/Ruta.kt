@@ -2,7 +2,6 @@ package com.smartwarehouse.mobile.data.model.response
 
 import com.google.gson.annotations.SerializedName
 
-// Modelo de respuesta de la API
 data class RutaEntregaResponse(
     @SerializedName("idRuta")
     val idRuta: Int,
@@ -23,7 +22,6 @@ data class RutaEntregaResponse(
     val estado: String? // "pendiente", "en_curso", "completada"
 )
 
-// Modelo de ubicación del repartidor
 data class UbicacionRepartidorResponse(
     @SerializedName("idUbicacion")
     val idUbicacion: Int,
@@ -41,15 +39,13 @@ data class UbicacionRepartidorResponse(
     val fechaHora: String?=null
 )
 
-// Request para crear ubicación
 data class CrearUbicacionRequest(
     val idRepartidor: Int,
     val latitud: Double,
     val longitud: Double,
-    val fechaHora: String? = null // Se enviará vacío, la API usa DateTime.Now
+    val fechaHora: String? = null
 )
 
-// Request para actualizar ruta
 data class ActualizarRutaRequest(
     val idRepartidor: Int?,
     val fechaRuta: String?,
@@ -58,7 +54,6 @@ data class ActualizarRutaRequest(
     val estado: String?
 )
 
-// Modelo de dominio para la UI
 data class Ruta(
     val id: Int,
     val idRepartidor: Int,
@@ -108,7 +103,6 @@ enum class EstadoRuta {
         }
     }
 }
-// Extensión para convertir Response a modelo de dominio
 fun RutaEntregaResponse.toDomain(): Ruta {
     return Ruta(
         id = idRuta,

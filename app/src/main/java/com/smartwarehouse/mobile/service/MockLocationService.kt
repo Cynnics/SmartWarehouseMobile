@@ -13,10 +13,7 @@ import kotlinx.coroutines.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.smartwarehouse.mobile.ui.login.LoginActivity
 
-/**
- * Servicio para simular movimiento GPS a lo largo de una ruta
- * Útil para pruebas sin necesidad de moverse físicamente
- */
+
 class MockLocationService : Service() {
 
     private lateinit var rutaRepository: RutaRepository
@@ -25,7 +22,7 @@ class MockLocationService : Service() {
 
     private val NOTIFICATION_ID = 54321
     private val CHANNEL_ID = "mock_location_channel"
-    private val UPDATE_INTERVAL = 5000L // 5 segundos para simulación
+    private val UPDATE_INTERVAL = 5000L
 
     companion object {
         var isMocking = false
@@ -48,17 +45,14 @@ class MockLocationService : Service() {
             context.stopService(intent)
         }
     }
-
-    // Ruta simulada (ejemplo: ruta por Madrid)
     private val defaultMockRoute  = listOf(
-        LatLng(40.4168, -3.7038),  // Puerta del Sol
-        LatLng(40.4200, -3.7050),  // Gran Vía
-        LatLng(40.4230, -3.7100),  // Plaza España
-        LatLng(40.4250, -3.7150),  // Templo de Debod
-        LatLng(40.4280, -3.7180),  // Parque del Oeste
-        LatLng(40.4300, -3.7200),  // Ciudad Universitaria
-        LatLng(40.4320, -3.7220),  // Moncloa
-        LatLng(40.4340, -3.7250)   // Valdezarza
+        LatLng(40.4168, -3.7038),
+        LatLng(40.4200, -3.7050),
+        LatLng(40.4230, -3.7100),
+        LatLng(40.4280, -3.7180),
+        LatLng(40.4300, -3.7200),
+        LatLng(40.4320, -3.7220),
+        LatLng(40.4340, -3.7250)
     )
 
     private var currentIndex = 0
@@ -93,7 +87,6 @@ class MockLocationService : Service() {
                         longitud = currentLocation.longitude
                     )
 
-                    // 🔥 ENVIAR BROADCAST LOCAL PARA ACTUALIZAR UI
                     val intent = Intent("LOCATION_UPDATE")
                     intent.putExtra("latitude", currentLocation.latitude)
                     intent.putExtra("longitude", currentLocation.longitude)
@@ -108,7 +101,6 @@ class MockLocationService : Service() {
                     android.util.Log.e("MockLocation", "Error al enviar ubicación simulada", e)
                 }
 
-                // Avanzar al siguiente punto
                 currentIndex = (currentIndex + 1) % mockRoute.size
 
                 delay(UPDATE_INTERVAL)
@@ -154,7 +146,7 @@ class MockLocationService : Service() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setColor(0xFFFF9800.toInt()) // Color naranja para diferenciarlo
+            .setColor(0xFFFF9800.toInt())
             .build()
     }
 
@@ -168,7 +160,7 @@ class MockLocationService : Service() {
         super.onDestroy()
         simulationJob?.cancel()
         serviceScope.cancel()
-        isMocking = false  // ✅ Asegurar que se actualiza INMEDIATAMENTE
+        isMocking = false
         dynamicRoute = null
         android.util.Log.d("MockLocation", "Simulación de GPS detenida")
     }

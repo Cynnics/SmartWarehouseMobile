@@ -18,7 +18,6 @@ class TodasRutasViewModel(application: Application) : AndroidViewModel(applicati
     private val database = AppDatabase.getInstance(application)
     private val rutaDao = database.rutaDao()
 
-    // 🔥 Obtener TODAS las rutas del sistema (no filtradas por repartidor)
     val rutas = rutaDao.getAllRutas()
         .map { entities -> entities.map { it.toDomain() } }
         .asLiveData(viewModelScope.coroutineContext)
@@ -29,7 +28,6 @@ class TodasRutasViewModel(application: Application) : AndroidViewModel(applicati
 
     fun sincronizarTodasRutas() {
         viewModelScope.launch {
-            // Obtener todas las rutas de la API (no filtradas)
             val result = rutaRepository.getRutas()
 
             if (result is NetworkResult.Success) {

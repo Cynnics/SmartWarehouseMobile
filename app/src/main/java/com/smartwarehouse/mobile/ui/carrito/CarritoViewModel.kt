@@ -20,7 +20,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     private val productoRepository = ProductoRepository(application)
     val carrito = ProductoRepository.carrito
 
-    // ------- CARRITO -------
     private val _items = MutableLiveData<List<ItemCarrito>>()
     val items: LiveData<List<ItemCarrito>> = _items
 
@@ -33,7 +32,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
     private val _total = MutableLiveData<Double>()
     val total: LiveData<Double> = _total
 
-    // ------- RESULTADOS -------
     private val _crearPedidoResult = MutableLiveData<NetworkResult<Boolean>>()
     val crearPedidoResult: LiveData<NetworkResult<Boolean>> = _crearPedidoResult
 
@@ -44,10 +42,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         actualizarCarrito()
     }
 
-    // ================================================================
-    // ✅ MÉTODO PRINCIPAL: TODO EN UNO
-    // ================================================================
-    // CarritoViewModel.kt
 
     fun crearPedidoConGeocodificacion(
         direccion: String,
@@ -55,7 +49,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         codigoPostal: String,
         notas: String?
     ) {
-        // 1️⃣ Validaciones (sin cambios)
         if (direccion.isBlank()) {
             _crearPedidoResult.value = NetworkResult.Error("La dirección es obligatoria")
             return
@@ -76,21 +69,18 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
             return
         }
 
-        // 2️⃣ Proceso asíncrono
         _isLoading.value = true
         _crearPedidoResult.value = NetworkResult.Loading()
 
         viewModelScope.launch {
             try {
 
-                // 🔥 GUARDAR COPIA DE LOS ITEMS ANTES DE CUALQUIER COSA
                 val itemsParaActualizar = carrito.items.map { item ->
                     ItemCarrito(item.producto, item.cantidad)
                 }.toList()
 
                 Log.d("CarritoViewModel", "Items guardados para actualizar: ${itemsParaActualizar.size}")
 
-                // 🔥 PASO 1: VERIFICAR STOCK ANTES DE CREAR EL PEDIDO
                 val (stockValido, mensajeStock) = productoRepository.verificarStockDisponible(itemsParaActualizar)
                 if (!stockValido) {
                     _crearPedidoResult.value = NetworkResult.Error(mensajeStock)
@@ -98,10 +88,8 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
                     return@launch
                 }
 
-                // 3️⃣ Geocodificar dirección (sin cambios)
                 val (lat, lng) = calcularCoordenadasSuspend(direccion, ciudad, codigoPostal)
 
-                // 4️⃣ Crear pedido en la API (sin cambios)
                 val result = productoRepository.crearPedido(
                     direccion = direccion,
                     ciudad = ciudad,
@@ -111,23 +99,21 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
                     longitud = lng
                 )
 
-                // 🔥 PASO 2: SI EL PEDIDO SE CREÓ, ACTUALIZAR STOCK
                 if (result is NetworkResult.Success) {
                     Log.d("CarritoViewModel", "✅ Pedido creado, actualizando stock...")
 
-                    // 🔥 USAR LA COPIA GUARDADA, NO carrito.items
                     val stockActualizado = productoRepository.actualizarStockProductos(itemsParaActualizar)
 
                     if (stockActualizado) {
                         Log.d("CarritoViewModel", "✅ Stock actualizado correctamente")
-                        vaciarCarrito() // AHORA SÍ vaciar el carrito
+                        vaciarCarrito()
                         _crearPedidoResult.value = result
                     } else {
                         Log.e("CarritoViewModel", "⚠️ Pedido creado pero hubo errores al actualizar stock")
                         _crearPedidoResult.value = NetworkResult.Error("Pedido creado pero error al actualizar stock")
                     }
                 } else {
-                    // 5️⃣ Si hubo error al crear pedido
+
                     _crearPedidoResult.value = result
                 }
 
@@ -140,11 +126,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-
-
-    // ================================================================
-    // GEOCODIFICACIÓN (PRIVADO)
-    // ================================================================
     private suspend fun calcularCoordenadasSuspend(
         direccion: String,
         ciudad: String,
@@ -170,9 +151,6 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // ================================================================
-    // MÉTODOS CARRITO
-    // ================================================================
     fun actualizarCarrito() {
         _items.value = carrito.items.map { item ->
             ItemCarrito(item.producto, item.cantidad)

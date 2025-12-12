@@ -2,7 +2,6 @@ package com.smartwarehouse.mobile.data.model.response
 
 import com.google.gson.annotations.SerializedName
 
-// Modelo principal de Pedido (debe coincidir con tu API)
 data class PedidoResponse(
     @SerializedName("idPedido")
     val idPedido: Int,
@@ -25,7 +24,6 @@ data class PedidoResponse(
     @SerializedName("direccionEntrega")
     val direccionEntrega: String?,
 
-    // 🔥 NUEVOS CAMPOS AÑADIDOS
     @SerializedName("ciudad")
     val ciudad: String?,
 
@@ -42,7 +40,6 @@ data class PedidoResponse(
     val notas: String?
 )
 
-// Modelo de detalle de pedido CON INFORMACIÓN DEL PRODUCTO
 data class DetallePedidoResponse(
     @SerializedName("idDetalle")
     val idDetalle: Int,
@@ -60,7 +57,6 @@ data class DetallePedidoResponse(
     val subtotal: Double
 )
 
-// Modelo de totales del pedido
 data class TotalesPedidoResponse(
     @SerializedName("subtotal")
     val subtotal: Double,
@@ -72,7 +68,6 @@ data class TotalesPedidoResponse(
     val total: Double
 )
 
-// Modelo de dominio (para la UI)
 data class Pedido(
     val id: Int,
     val idCliente: Int,
@@ -82,7 +77,6 @@ data class Pedido(
     val fechaEntrega: String?,
     val direccionEntrega: String?,
 
-    // 🔥 NUEVOS CAMPOS
     val ciudad: String?,
     val codigoPostal: String?,
     val latitud: Double?,
@@ -127,7 +121,6 @@ data class Pedido(
         }
     }
 
-    // 🔥 NUEVOS MÉTODOS PARA COORDENADAS
     fun tieneCoordenadasValidas(): Boolean {
         return latitud != null && longitud != null
     }
@@ -169,7 +162,6 @@ enum class EstadoPedido {
     }
 }
 
-// Extensión para convertir Response a modelo de dominio
 fun PedidoResponse.toDomain(): Pedido {
     return Pedido(
         id = idPedido,

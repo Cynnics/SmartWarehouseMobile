@@ -46,29 +46,21 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
             val result = rutaRepository.getPedidosDeRuta(idRuta)
             _pedidos.value = result
 
-            // Convertir pedidos a waypoints para el mapa
-            if (result is NetworkResult.Success) {
-                // TODO: Aquí necesitarías las coordenadas de cada pedido
-                // Por ahora, usaremos coordenadas simuladas
-                // En producción, deberías tener las direcciones con coordenadas en tu BD
-            }
         }
     }
     fun iniciarRuta(idRuta: Int) {
         _isLoading.value = true
 
         viewModelScope.launch {
-            // 1️⃣ Cambiar estado de la ruta a "en_curso"
             val resultRuta = rutaRepository.cambiarEstadoRuta(idRuta, "en_curso")
 
             if (resultRuta is NetworkResult.Success) {
-                // 2️⃣ 🔥 CAMBIAR TODOS LOS PEDIDOS DE LA RUTA A "EN_REPARTO"
                 val resultCambioEstados = cambiarEstadosPedidosDeRuta(idRuta, "en_reparto")
 
                 if (resultCambioEstados is NetworkResult.Success) {
                     _cambioEstadoResult.value = NetworkResult.Success(true)
                     cargarRuta(idRuta)
-                    cargarPedidosDeRuta(idRuta) // Recargar pedidos con nuevos estados
+                    cargarPedidosDeRuta(idRuta)
                 } else {
                     _cambioEstadoResult.value = NetworkResult.Error(
                         "Ruta iniciada pero error al actualizar pedidos"
@@ -86,11 +78,9 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
         _isLoading.value = true
 
         viewModelScope.launch {
-            // 1️⃣ 🔥 CAMBIAR TODOS LOS PEDIDOS A "ENTREGADO"
             val resultPedidos = cambiarEstadosPedidosDeRuta(idRuta, "entregado")
 
             if (resultPedidos is NetworkResult.Success) {
-                // 2️⃣ Cambiar estado de la ruta a "completada"
                 val resultRuta = rutaRepository.cambiarEstadoRuta(idRuta, "completada")
 
                 if (resultRuta is NetworkResult.Success) {
@@ -116,7 +106,6 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
     ): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Obtener pedidos de la ruta
                 val pedidosResult = rutaRepository.getPedidosDeRuta(idRuta)
 
                 if (pedidosResult is NetworkResult.Success) {
@@ -126,14 +115,12 @@ class RutaDetalleViewModel(application: Application) : AndroidViewModel(applicat
                         return@withContext NetworkResult.Error("No hay pedidos en esta ruta")
                     }
 
-                    // Cambiar estado de cada pedido
                     val resultados = pedidos.map { pedido ->
                         async {
                             pedidoRepository.cambiarEstadoPedido(pedido.id, nuevoEstado)
                         }
                     }.awaitAll()
 
-                    // Verificar si todos fueron exitosos
                     val todosExitosos = resultados.all { it is NetworkResult.Success }
 
                     if (todosExitosos) {

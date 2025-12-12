@@ -36,32 +36,17 @@ class ProductoRepository(private val context: Context) {
 
     private val database = AppDatabase.getInstance(context)
     private val productoDao = database.productoDao()
-
-    // ============================================================
-    // CARRITO EN MEMORIA (Singleton)
-    // ============================================================
     companion object {
         val carrito = Carrito()
     }
 
-    // ============================================================
-    // PRODUCTOS - CACHE CON ROOM
-    // ============================================================
 
-    /**
-     * Obtiene productos con estrategia Cache-First
-     * 1. Devuelve datos de cache inmediatamente
-     * 2. Actualiza desde API en segundo plano
-     */
     fun getProductos(): Flow<List<ProductoResponse>> {
         return productoDao.getAllProductos().map { entities ->
             entities.map { it.toResponse() }
         }
     }
 
-    /**
-     * Sincroniza productos desde la API
-     */
     suspend fun syncProductos(): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
@@ -85,22 +70,12 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Verifica si necesita sincronización (cache vacío o antiguo)
-     */
     suspend fun needsSync(): Boolean {
         return withContext(Dispatchers.IO) {
             productoDao.getProductosCount() == 0
         }
     }
 
-    // ============================================================
-    // BÚSQUEDA Y FILTROS
-    // ============================================================
-
-    /**
-     * Buscar productos por nombre o categoría
-     */
     fun buscarProductos(query: String, productos: List<ProductoResponse>): List<ProductoResponse> {
         if (query.isBlank()) return productos
 
@@ -112,24 +87,16 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Filtrar por categoría
-     */
+
     fun filtrarPorCategoria(categoria: String?, productos: List<ProductoResponse>): List<ProductoResponse> {
         if (categoria.isNullOrBlank() || categoria == "Todas") return productos
         return productos.filter { it.categoria == categoria }
     }
 
-    /**
-     * Obtener categorías únicas
-     */
     fun getCategorias(productos: List<ProductoResponse>): List<String> {
         return productos.mapNotNull { it.categoria }.distinct().sorted()
     }
 
-    // ============================================================
-    // CREAR PEDIDO COMPLETO (Pedido + Detalles)
-    // ============================================================
 
     suspend fun crearPedido(
         direccion: String,
@@ -148,9 +115,6 @@ class ProductoRepository(private val context: Context) {
 
                 val idCliente = sessionManager.getUserId()
 
-                // -----------------------------
-                // 1) Crear pedido
-                // -----------------------------
                 val request = CrearPedidoRequest(
                     idCliente = idCliente,
                     items = carrito.items.map {
@@ -178,9 +142,6 @@ class ProductoRepository(private val context: Context) {
                 val pedidoCreado = pedidoResponse.body()
                     ?: return@withContext NetworkResult.Error("Respuesta del servidor vacía")
 
-                // -----------------------------
-                // 2) Crear detalles del pedido
-                // -----------------------------
                 for (item in carrito.items) {
 
                     val detalle = DetallePedidoResponse(
@@ -198,9 +159,6 @@ class ProductoRepository(private val context: Context) {
                     }
                 }
 
-                // -----------------------------
-                // 3) Vaciar carrito
-                // -----------------------------
                 carrito.vaciar()
 
                 NetworkResult.Success(true)
@@ -211,9 +169,6 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // ProductoRepository.kt
-
-    // 🔥 Verificar stock disponible
     suspend fun verificarStockDisponible(items: List<ItemCarrito>): Pair<Boolean, String> {
         return withContext(Dispatchers.IO) {
             try {
@@ -256,7 +211,6 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // 🔥 Actualizar stock después de crear pedido
     suspend fun actualizarStockProductos(items: List<ItemCarrito>): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -269,7 +223,6 @@ class ProductoRepository(private val context: Context) {
                         Log.d("ActualizarStock", "ID: ${item.producto.idProducto}")
                         Log.d("ActualizarStock", "Cantidad a restar: ${item.cantidad}")
 
-                        // Obtener el stock actual
                         Log.d("ActualizarStock", "📥 GET Productos/${item.producto.idProducto}")
                         val response = productoService.getProductoById(item.producto.idProducto)
 
@@ -278,11 +231,9 @@ class ProductoRepository(private val context: Context) {
                             if (productoActual != null) {
                                 Log.d("ActualizarStock", "Stock actual: ${productoActual.stock}")
 
-                                // Calcular nuevo stock
                                 val nuevoStock = productoActual.stock - item.cantidad
                                 Log.d("ActualizarStock", "Nuevo stock calculado: $nuevoStock")
 
-                                // Actualizar en la API
                                 Log.d("ActualizarStock", "📤 PATCH Productos/${item.producto.idProducto}/stock con valor: $nuevoStock")
                                 val updateResponse = productoService.actualizarStock(
                                     item.producto.idProducto,
@@ -318,10 +269,6 @@ class ProductoRepository(private val context: Context) {
             }
         }
     }
-
-    // ============================================================
-    // MANEJO DE ERRORES
-    // ============================================================
 
     private fun handleException(e: Exception): String {
         return when (e) {

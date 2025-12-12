@@ -18,7 +18,7 @@ import com.smartwarehouse.mobile.data.model.response.ProductoResponse
  */
 class ProductoAdapter(
     private val onProductoClick: (ProductoResponse) -> Unit,
-    private val onAgregarClick: (ProductoResponse) -> Unit // ✅ Solo notifica el click
+    private val onAgregarClick: (ProductoResponse) -> Unit
 ) : ListAdapter<ProductoResponse, ProductoAdapter.ProductoViewHolder>(ProductoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductoViewHolder {
@@ -40,29 +40,23 @@ class ProductoAdapter(
         private val btnAgregar: Button = itemView.findViewById(R.id.btnAgregar)
 
         fun bind(producto: ProductoResponse) {
-            // ✅ Solo muestra datos
+
             tvNombre.text = producto.nombre
             tvPrecio.text = producto.getPrecioFormateado()
             tvStock.text = producto.getStockTexto()
             tvCategoria.text = producto.categoria ?: "Sin categoría"
 
-            // ✅ Configurar visualización según stock (UI)
             configurarEstiloStock(producto)
 
-            // ✅ Click en el card - notifica al ViewModel
             itemView.setOnClickListener {
                 onProductoClick(producto)
             }
 
-            // ✅ CORRECTO: Solo notifica el click, el ViewModel decide qué hacer
             btnAgregar.setOnClickListener {
-                onAgregarClick(producto) // ✅ El ViewModel validará si tiene stock
+                onAgregarClick(producto)
             }
         }
 
-        /**
-         * ✅ CORRECTO: Solo cambia colores (UI), no toma decisiones de negocio
-         */
         private fun configurarEstiloStock(producto: ProductoResponse) {
             when {
                 producto.stock == 0 -> {

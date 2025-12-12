@@ -22,7 +22,7 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
     val pedido: LiveData<NetworkResult<Pedido>> = _pedido
     private val _detalles = MutableLiveData<NetworkResult<List<DetallePedidoResponse>>>()
     val detalles: LiveData<NetworkResult<List<DetallePedidoResponse>>> = _detalles
-    private val _productosMap = MutableLiveData<Map<Int, String>>() // idProducto -> nombreProducto
+    private val _productosMap = MutableLiveData<Map<Int, String>>()
     val productosMap: LiveData<Map<Int, String>> = _productosMap
     private val _cliente = MutableLiveData<NetworkResult<UsuarioResponse>>()
     val cliente: LiveData<NetworkResult<UsuarioResponse>> = _cliente
@@ -57,7 +57,6 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
             if (result is NetworkResult.Success) {
                 val detalles = result.data ?: emptyList()
 
-                // Mapear idProducto -> nombreProducto
                 val mapProductos = mutableMapOf<Int, String>()
                 for (detalle in detalles) {
                     val productoResult = pedidoRepository.getProductoById(detalle.idProducto)
@@ -72,7 +71,7 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
                 _productosMap.value = mapProductos
             }
 
-            _detalles.value = result // Mantener List<DetallePedidoResponse>
+            _detalles.value = result
         }
     }
 
@@ -100,7 +99,6 @@ class PedidoDetalleViewModel(application: Application) : AndroidViewModel(applic
             _cambioEstadoResult.value = result
 
             if (result is NetworkResult.Success) {
-                // Recargar el pedido después del cambio
                 cargarPedido(idPedido)
             }
 

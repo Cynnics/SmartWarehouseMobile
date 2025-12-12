@@ -67,7 +67,6 @@ class EditarPerfilActivity : AppCompatActivity() {
                     showToast(result.message ?: "Error al actualizar perfil")
                 }
                 is NetworkResult.Loading -> {
-                    // El loading se maneja en isLoading
                 }
             }
         }
@@ -95,7 +94,6 @@ class EditarPerfilActivity : AppCompatActivity() {
         val nombre = etNombre.text.toString().trim()
         val telefono = etTelefono.text.toString().trim()
 
-        // Validaciones básicas
         if (nombre.isEmpty()) {
             etNombre.error = "El nombre es obligatorio"
             etNombre.requestFocus()
@@ -114,7 +112,6 @@ class EditarPerfilActivity : AppCompatActivity() {
             return
         }
 
-        // Llamar al ViewModel para actualizar
         viewModel.actualizarPerfil(nombre, telefono)
     }
 

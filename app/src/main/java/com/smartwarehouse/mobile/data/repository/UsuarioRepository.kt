@@ -15,9 +15,6 @@ class UsuarioRepository(private val context: Context) {
     private val usuarioService: UsuarioService =
         ApiClient.createService(context, UsuarioService::class.java)
 
-    /**
-     * Obtiene la lista de repartidores
-     */
     suspend fun getRepartidores(): NetworkResult<List<UsuarioResponse>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -34,9 +31,6 @@ class UsuarioRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Obtiene todos los usuarios (solo admin)
-     */
     suspend fun getUsuarios(): NetworkResult<List<UsuarioResponse>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -53,9 +47,6 @@ class UsuarioRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Actualiza los datos del usuario
-     */
     suspend fun actualizarUsuario(
         idUsuario: Int,
         nombre: String,

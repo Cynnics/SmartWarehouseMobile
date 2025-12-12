@@ -59,7 +59,6 @@ class RutasActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // ⚡ AHORA rutas = List<Ruta>
         viewModel.rutas.observe(this) { rutas ->
 
             if (rutas == null || rutas.isEmpty()) {
@@ -70,13 +69,11 @@ class RutasActivity : AppCompatActivity() {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
 
-                // ✅ Forzar scroll al inicio ANTES de actualizar lista
                 recyclerView.scrollToPosition(0)
 
                 rutaAdapter.submitList(rutas)
             }
 
-            // ✅ Cerrar loading DESPUÉS de recibir datos
             swipeRefresh.isRefreshing = false
             progressBar.visibility = View.GONE
         }
@@ -102,7 +99,6 @@ class RutasActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Volver a sincronizar cuando regresamos
         viewModel.sincronizarRutas()
     }
 }

@@ -20,7 +20,6 @@ class RutasViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
     private val rutaDao = database.rutaDao()
 
-    // 🔥 Flow de Room
     val rutas = rutaDao.getRutasByRepartidor(authRepository.getUserId())
         .map { entities -> entities.map { it.toDomain() } }
         .asLiveData(viewModelScope.coroutineContext)

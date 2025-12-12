@@ -33,10 +33,8 @@ class AsignarRutaActivity : AppCompatActivity() {
 
     private val viewModel: AsignarRutaViewModel by viewModels()
 
-    // Pedidos seleccionados
     private val selectedPedidos = mutableSetOf<Pedido>()
 
-    // Fecha seleccionada (por defecto hoy)
     private var fechaSeleccionada: Date = Date()
 
     private val pedidoAdapter = PedidoSeleccionableAdapter { pedido, isChecked ->
@@ -58,7 +56,6 @@ class AsignarRutaActivity : AppCompatActivity() {
         setupObservers()
         setupListeners()
 
-        // Mostrar fecha inicial
         actualizarFechaTexto()
     }
 
@@ -88,7 +85,6 @@ class AsignarRutaActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // Observer de pedidos pendientes
         viewModel.pedidosPendientes.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -115,8 +111,6 @@ class AsignarRutaActivity : AppCompatActivity() {
                 }
             }
         }
-
-        // Observer de repartidores
         viewModel.repartidores.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -144,8 +138,6 @@ class AsignarRutaActivity : AppCompatActivity() {
                 is NetworkResult.Loading -> {}
             }
         }
-
-        // Observer del resultado de crear ruta
         viewModel.crearRutaResult.observe(this) { result ->
             progressBar.visibility = View.GONE
 
@@ -161,8 +153,6 @@ class AsignarRutaActivity : AppCompatActivity() {
                 }
             }
         }
-
-        // Observer de loading
         viewModel.isLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             btnCrearRuta.isEnabled = !isLoading
@@ -204,13 +194,11 @@ class AsignarRutaActivity : AppCompatActivity() {
     }
 
     private fun validarYCrearRuta() {
-        // Validar pedidos seleccionados
         if (selectedPedidos.isEmpty()) {
             showToast("Selecciona al menos un pedido")
             return
         }
 
-        // Validar repartidor seleccionado
         val posicion = spinnerRepartidores.selectedItemPosition
         if (posicion == AdapterView.INVALID_POSITION) {
             showToast("Selecciona un repartidor")
@@ -228,8 +216,6 @@ class AsignarRutaActivity : AppCompatActivity() {
             showToast("Error: Repartidor no válido")
             return
         }
-
-        // Mostrar diálogo de confirmación
         mostrarDialogoConfirmacion(repartidor.idUsuario, repartidor.nombre)
     }
 
@@ -284,8 +270,6 @@ class AsignarRutaActivity : AppCompatActivity() {
         pedidoAdapter.seleccionados.clear()
         pedidoAdapter.notifyDataSetChanged()
         actualizarContadorSeleccionados()
-
-        // Recargar pedidos
         viewModel.cargarPedidosPendientes()
     }
 

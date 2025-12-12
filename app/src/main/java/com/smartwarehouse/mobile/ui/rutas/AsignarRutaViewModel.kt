@@ -47,12 +47,10 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
 
         viewModelScope.launch {
             try {
-                // Obtener todos los pedidos
                 val result = pedidoRepository.getPedidos()
 
                 when (result) {
                     is NetworkResult.Success -> {
-                        // Filtrar solo pedidos pendientes
                         val pedidosPendientes = result.data?.filter { pedido ->
                             pedido.estado == com.smartwarehouse.mobile.data.model.response.EstadoPedido.PENDIENTE
                         } ?: emptyList()
@@ -100,9 +98,6 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /**
-     * Crea una ruta con geocodificación automática de direcciones
-     */
     fun crearRuta(
         idRepartidor: Int,
         pedidosSeleccionados: List<Pedido>,
@@ -118,7 +113,6 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
 
         viewModelScope.launch {
             try {
-                // 1️⃣ Geocodificar pedidos sin coordenadas
                 val pedidosConCoordenadas = geocodificarPedidos(pedidosSeleccionados)
 
                 if (pedidosConCoordenadas.isEmpty()) {
@@ -129,15 +123,12 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
                     return@launch
                 }
 
-                // 2️⃣ Calcular distancia y duración estimadas (simplificado)
                 val distanciaEstimadaKm = calcularDistanciaTotal(pedidosConCoordenadas)
                 val duracionEstimadaMin = calcularDuracionEstimada(pedidosConCoordenadas)
 
-                // 3️⃣ Formatear fecha
                 val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val fechaStr = formatter.format(fechaRuta)
 
-                // 4️⃣ Crear ruta en la API
                 val resultCrearRuta = rutaRepository.crearRuta(
                     idRepartidor = idRepartidor,
                     fechaRuta = fechaStr,
@@ -157,7 +148,6 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
                             return@launch
                         }
 
-                        // 5️⃣ Asignar pedidos a la ruta
                         val resultAsignar = asignarPedidosARuta(
                             idRuta = idRuta,
                             pedidos = pedidosSeleccionados,
@@ -183,16 +173,12 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /**
-     * Geocodifica pedidos que no tienen coordenadas
-     */
     private suspend fun geocodificarPedidos(pedidos: List<Pedido>): List<Pedido> {
         return pedidos.mapNotNull { pedido ->
             if (pedido.tieneCoordenadasValidas()) {
-                // Ya tiene coordenadas
+
                 pedido
             } else {
-                // Necesita geocodificación
                 val direccionCompleta = pedido.getDireccionCompleta()
 
                 if (GeocodingHelper.isValidAddress(direccionCompleta)) {
@@ -201,7 +187,6 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
                     )
 
                     if (coordenadas != null) {
-                        // Crear copia del pedido con coordenadas
                         pedido.copy(
                             latitud = coordenadas.latitude,
                             longitud = coordenadas.longitude
@@ -220,23 +205,17 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /**
-     * Asigna múltiples pedidos a una ruta y actualiza sus estados
-     */
     private suspend fun asignarPedidosARuta(
         idRuta: Int,
         pedidos: List<Pedido>,
         idRepartidor: Int
     ): NetworkResult<Boolean> {
         return try {
-            // Asignar cada pedido a la ruta en paralelo
             val resultados = pedidos.map { pedido ->
                 viewModelScope.async {
-                    // 1. Asignar pedido a ruta
                     val resultAsignacion = rutaRepository.asignarPedidoARuta(idRuta, pedido.id)
 
                     if (resultAsignacion is NetworkResult.Success) {
-                        // 2. Cambiar estado del pedido a "preparado"
                         pedidoRepository.cambiarEstadoPedido(pedido.id, "preparado")
                     } else {
                         resultAsignacion
@@ -244,7 +223,6 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
                 }
             }.awaitAll()
 
-            // Verificar si todos fueron exitosos
             val todosExitosos = resultados.all { it is NetworkResult.Success }
 
             if (todosExitosos) {
@@ -260,28 +238,16 @@ class AsignarRutaViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /**
-     * Calcula distancia total estimada (simplificado)
-     * En producción, usar Directions API para distancia real
-     */
     private fun calcularDistanciaTotal(pedidos: List<Pedido>): Double {
-        // Estimación: 2 km por pedido + 5 km base
         return 5.0 + (pedidos.size * 2.0)
     }
 
-    /**
-     * Calcula duración estimada (simplificado)
-     * En producción, usar Directions API para duración real
-     */
+
     private fun calcularDuracionEstimada(pedidos: List<Pedido>): Int {
-        // Estimación: 15 min por pedido + 30 min base
         return 30 + (pedidos.size * 15)
     }
 }
 
-/**
- * Extensión para copiar un Pedido con nuevas coordenadas
- */
 private fun Pedido.copy(
     latitud: Double? = this.latitud,
     longitud: Double? = this.longitud

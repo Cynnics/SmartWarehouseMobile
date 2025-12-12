@@ -25,7 +25,6 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Verificar si ya hay sesión activa
         if (viewModel.isLoggedIn()) {
             routeToAppropriateActivity()
             return
@@ -46,14 +45,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // Observer para el resultado del login
         viewModel.loginResult.observe(this) { result ->
             when (result) {
                 is NetworkResult.Success -> {
                     val usuario = result.data?.usuario
 
                     if (usuario != null) {
-                        // 🔥 Guardar datos del usuario
                         val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
                         prefs.edit()
                             .putString("nombre", usuario.nombre)
@@ -69,7 +66,6 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
                 }
                 is NetworkResult.Loading -> {
-                    // El estado de carga se maneja en isLoading
                 }
             }
         }
@@ -91,14 +87,12 @@ class LoginActivity : AppCompatActivity() {
             "cliente" -> Intent(this, ClienteMainActivity::class.java)
             "admin", "empleado" -> Intent(this, AdminEmpleadoMainActivity::class.java)
             else -> {
-                // Rol desconocido, cerrar sesión y quedarse en login
                 viewModel.logout()
                 Toast.makeText(this, "Rol de usuario no válido", Toast.LENGTH_SHORT).show()
                 return
             }
         }
 
-        // Limpiar stack de actividades y abrir la nueva
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

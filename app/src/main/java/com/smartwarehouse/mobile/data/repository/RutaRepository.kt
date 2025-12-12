@@ -17,7 +17,6 @@ class RutaRepository(private val context: Context) {
     private val ubicacionService: UbicacionService = ApiClient.createService(context, UbicacionService::class.java)
     private val sessionManager = SessionManager.getInstance(context)
 
-    // Obtener todas las rutas
     suspend fun getRutas(): NetworkResult<List<Ruta>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -35,7 +34,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Obtener rutas del repartidor actual
     suspend fun getRutasRepartidor(): NetworkResult<List<Ruta>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -57,7 +55,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Obtener ruta por ID
     suspend fun getRutaById(idRuta: Int): NetworkResult<Ruta> {
         return withContext(Dispatchers.IO) {
             try {
@@ -76,7 +73,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Obtener pedidos de una ruta
     suspend fun getPedidosDeRuta(idRuta: Int): NetworkResult<List<Pedido>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -111,7 +107,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Enviar ubicación GPS del repartidor
     suspend fun enviarUbicacion(latitud: Double, longitud: Double): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
@@ -135,7 +130,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Obtener última ubicación del repartidor
     suspend fun getUltimaUbicacion(): NetworkResult<UbicacionRepartidorResponse> {
         return withContext(Dispatchers.IO) {
             try {
@@ -155,7 +149,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    // Obtener ubicaciones del repartidor de una ruta
     suspend fun getUbicacionesDeRuta(idRuta: Int): NetworkResult<List<UbicacionRepartidorResponse>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -180,9 +173,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Crear una nueva ruta
-     */
     suspend fun crearRuta(
         idRepartidor: Int,
         fechaRuta: String,
@@ -217,9 +207,6 @@ class RutaRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Asignar un pedido a una ruta
-     */
     suspend fun asignarPedidoARuta(idRuta: Int, idPedido: Int): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
@@ -243,12 +230,11 @@ class RutaRepository(private val context: Context) {
     ): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // 1️⃣ Actualizar en la API
                 val response = rutaService.actualizarRuta(
                     idRuta,
                     ActualizarRutaRequest(
-                        idRepartidor = 0, // No lo modificamos
-                        fechaRuta = "", // No lo modificamos
+                        idRepartidor = 0,
+                        fechaRuta = "",
                         distanciaEstimadaKm = distanciaKm,
                         duracionEstimadaMin = duracionMin,
                         estado = null

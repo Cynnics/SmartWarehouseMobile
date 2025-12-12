@@ -27,9 +27,8 @@ class LocationTrackingService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    // Configuración del tracking
-    private val UPDATE_INTERVAL = 30000L // 30 segundos
-    private val FASTEST_INTERVAL = 15000L // 15 segundos (mínimo)
+    private val UPDATE_INTERVAL = 30000L
+    private val FASTEST_INTERVAL = 15000L
     private val NOTIFICATION_ID = 12345
     private val CHANNEL_ID = "location_tracking_channel"
 
@@ -111,7 +110,6 @@ class LocationTrackingService : Service() {
                     latitud = location.latitude,
                     longitud = location.longitude
                 )
-                // Log exitoso (opcional)
                 android.util.Log.d("LocationTracking",
                     "Ubicación enviada: ${location.latitude}, ${location.longitude}")
             } catch (e: Exception) {
@@ -154,7 +152,7 @@ class LocationTrackingService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("🚚 Seguimiento Activo")
             .setContentText(locationText)
-            .setSmallIcon(R.drawable.ic_user) // Cambia por tu icono
+            .setSmallIcon(R.drawable.ic_user)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

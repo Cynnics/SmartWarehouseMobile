@@ -48,10 +48,8 @@ class PedidoSeleccionableAdapter(
 
             estadoIndicator.setBackgroundColor(pedido.getEstadoColor())
 
-            // Aplicar estado del checkbox
             checkBox.isChecked = seleccionados.contains(pedido.id)
 
-            // Listener del checkbox
             checkBox.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     seleccionados.add(pedido.id)
@@ -61,7 +59,6 @@ class PedidoSeleccionableAdapter(
                 onPedidoToggle(pedido, isChecked)
             }
 
-            // Click en el card también marca/desmarca
             cardView.setOnClickListener {
                 checkBox.isChecked = !checkBox.isChecked
             }

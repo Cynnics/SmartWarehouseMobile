@@ -11,7 +11,5 @@ interface AuthService {
     @POST("Usuarios/login")
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 
-    // Puedes añadir más endpoints relacionados con autenticación
-    // @POST("Usuarios/register")
-    // suspend fun register(@Body registerRequest: RegisterRequest): Response<RegisterResponse>
+
 }

@@ -124,14 +124,12 @@
         }
 
         private fun setupListeners() {
-            // ✅ CORRECTO: La Activity solo pasa datos al ViewModel
             btnCrearPedido.setOnClickListener {
                 val direccion = etDireccion.text.toString().trim()
                 val ciudad = etCiudad.text.toString().trim()
                 val codigoPostal = etCodigoPostal.text.toString().trim()
                 val notas = etNotas.text.toString().trim().ifBlank { null }
 
-                // ✅ El ViewModel se encarga de TODO
                 viewModel.crearPedidoConGeocodificacion(
                     direccion = direccion,
                     ciudad = ciudad,

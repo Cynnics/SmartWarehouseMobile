@@ -49,7 +49,6 @@ class AdminEmpleadoMainActivity : AppCompatActivity() {
         }
 
         btnCerrarSesion.setOnClickListener {
-            // Cerrar sesión y volver al login
             viewModel.logout()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

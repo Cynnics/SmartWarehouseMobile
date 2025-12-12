@@ -57,7 +57,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        // ✅ INLINE - Más claro
         if (telefono.isNotBlank() && !Regex("^[679]\\d{8}$").matches(telefono.replace(" ", ""))) {
             _actualizarPerfilResult.value = NetworkResult.Error("Teléfono no válido")
             return
@@ -70,7 +69,6 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val userId = authRepository.getUserId()
 
-                // Actualizar en la API
                 val result = usuarioRepository.actualizarUsuario(
                     idUsuario = userId,
                     nombre = nombre,
@@ -79,13 +77,11 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
                 when (result) {
                     is NetworkResult.Success -> {
-                        // Actualizar SharedPreferences
                         getSharedPreferences().edit()
                             .putString("nombre", nombre)
                             .putString("telefono", telefono)
                             .apply()
 
-                        // Actualizar LiveData
                         loadUserProfile()
 
                         _actualizarPerfilResult.value = NetworkResult.Success(true)

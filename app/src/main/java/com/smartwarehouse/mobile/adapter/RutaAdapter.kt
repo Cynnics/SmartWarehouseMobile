@@ -40,7 +40,6 @@ class RutaAdapter(
             tvIdRuta.text = "Ruta #${ruta.id}"
             tvEstado.text = ruta.getEstadoTexto()
 
-            // Formatear fecha
             val fecha = ruta.fechaRuta.toDate()?.toFormattedString("dd/MM/yyyy")
                 ?: ruta.fechaRuta
             tvFecha.text = fecha
@@ -48,10 +47,8 @@ class RutaAdapter(
             tvDistancia.text = ruta.getDistanciaTexto()
             tvDuracion.text = ruta.getDuracionTexto()
 
-            // Color del indicador según estado
             estadoIndicator.setBackgroundColor(ruta.getEstadoColor())
 
-            // Click listener
             cardView.setOnClickListener {
                 onRutaClick(ruta)
             }

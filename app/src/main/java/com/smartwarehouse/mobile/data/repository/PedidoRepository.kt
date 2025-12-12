@@ -18,7 +18,6 @@ class PedidoRepository(private val context: Context) {
     private val pedidoService: PedidoService = ApiClient.createService(context, PedidoService::class.java)
     private val sessionManager = SessionManager.getInstance(context)
 
-    // Obtener todos los pedidos
     suspend fun getPedidos(): NetworkResult<List<Pedido>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -27,7 +26,6 @@ class PedidoRepository(private val context: Context) {
                 if (response.isSuccessful) {
                     val pedidos = response.body()?.map { it.toDomain() } ?: emptyList()
 
-                    // 🔥 LOG DETALLADO
                     Log.d("PedidoRepo", "Pedidos obtenidos: ${pedidos.size}")
                     pedidos.forEach { pedido ->
                         Log.d("PedidoRepo", """
@@ -57,7 +55,6 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Obtener pedidos del cliente actual
     suspend fun getPedidosCliente(): NetworkResult<List<Pedido>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -82,7 +79,6 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Obtener pedidos del repartidor actual
     suspend fun getPedidosRepartidor(): NetworkResult<List<Pedido>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -104,7 +100,6 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Obtener detalles de un pedido
     suspend fun getDetallesPedido(idPedido: Int): NetworkResult<List<DetallePedidoResponse>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -121,7 +116,6 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Obtener totales del pedido
     suspend fun getTotalesPedido(idPedido: Int): NetworkResult<TotalesPedidoResponse> {
         return withContext(Dispatchers.IO) {
             try {
@@ -139,8 +133,6 @@ class PedidoRepository(private val context: Context) {
             }
         }
     }
-
-    // PedidoRepository.kt
 
     suspend fun cambiarEstadoPedido(idPedido: Int, nuevoEstado: String): NetworkResult<Boolean> {
         return withContext(Dispatchers.IO) {
@@ -170,7 +162,6 @@ class PedidoRepository(private val context: Context) {
         }
     }
 
-    // Obtener pedido por ID
     suspend fun getPedidoById(idPedido: Int): NetworkResult<Pedido> {
         return withContext(Dispatchers.IO) {
             try {
@@ -214,7 +205,7 @@ class PedidoRepository(private val context: Context) {
 
     suspend fun getProductoById(idProducto: Int): NetworkResult<ProductoResponse> {
         return try {
-            val response = pedidoService.getProductoById(idProducto) // Llamada a tu API o base de datos
+            val response = pedidoService.getProductoById(idProducto)
             if (response.isSuccessful && response.body() != null) {
                 NetworkResult.Success(response.body()!!)
             } else {

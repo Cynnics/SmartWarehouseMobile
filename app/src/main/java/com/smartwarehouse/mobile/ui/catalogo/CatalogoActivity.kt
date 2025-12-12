@@ -30,7 +30,7 @@ class CatalogoActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var emptyView: TextView
 
-    private var menuInstance: Menu? = null // 🔥 IMPORTANTE: Guardar referencia del menú
+    private var menuInstance: Menu? = null
 
     private val productoAdapter = ProductoAdapter(
         onProductoClick = { producto ->
@@ -41,7 +41,6 @@ class CatalogoActivity : AppCompatActivity() {
 
             viewModel.agregarProductoAlCarrito(producto)
 
-            // 🔥 Verificar inmediatamente
             val itemsEnCarrito = viewModel.itemsEnCarrito.value ?: 0
             android.util.Log.d("CatalogoActivity", "Items en carrito: $itemsEnCarrito")
 
@@ -81,7 +80,6 @@ class CatalogoActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // Observer de productos filtrados
         viewModel.productosFiltrados.observe(this) { productos ->
             productoAdapter.submitList(productos)
 
@@ -95,19 +93,16 @@ class CatalogoActivity : AppCompatActivity() {
             }
         }
 
-        // Observer de categorías
         viewModel.categorias.observe(this) { categorias ->
             val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categorias)
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerCategoria.adapter = adapter
         }
 
-        // Observer del contador del carrito
         viewModel.itemsEnCarrito.observe(this) { cantidad ->
-            invalidateOptionsMenu() // 🔥 Actualizar badge del carrito
+            invalidateOptionsMenu()
         }
 
-        // Observer de loading
         viewModel.isLoading.observe(this) { isLoading ->
             swipeRefresh.isRefreshing = isLoading
             progressBar.visibility = if (isLoading && productoAdapter.itemCount == 0) {
@@ -119,7 +114,7 @@ class CatalogoActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // Búsqueda
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let { viewModel.buscarProductos(it) }
@@ -132,7 +127,7 @@ class CatalogoActivity : AppCompatActivity() {
             }
         })
 
-        // Filtro por categoría
+
         spinnerCategoria.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val categoria = parent?.getItemAtPosition(position).toString()
@@ -142,7 +137,6 @@ class CatalogoActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Swipe to refresh
         swipeRefresh.setOnRefreshListener {
             viewModel.cargarProductos()
         }
@@ -150,16 +144,14 @@ class CatalogoActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_catalogo, menu)
-        menuInstance = menu // 🔥 Guardar referencia
+        menuInstance = menu
 
-        // 🔥 Actualizar badge inicial
         actualizarBadgeCarrito(menu)
 
         return true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        // 🔥 Se llama cada vez que se invalida el menú
         actualizarBadgeCarrito(menu)
         return super.onPrepareOptionsMenu(menu)
     }
@@ -197,7 +189,6 @@ class CatalogoActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 🔥 Actualizar contador cuando volvemos del carrito
         viewModel.actualizarContadorCarrito()
     }
 

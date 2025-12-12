@@ -103,7 +103,12 @@ class PedidosActivity : AppCompatActivity() {
         viewModel.pedidos.observe(this) { pedidos ->
             android.util.Log.d("PedidosActivity", "Pedidos recibidos: ${pedidos.size}")
 
-            pedidoAdapter.submitList(pedidos)
+            pedidoAdapter.submitList(pedidos) {
+                // ✅ Scroll al inicio tras actualizar lista
+                if (pedidos.isNotEmpty()) {
+                    recyclerView.scrollToPosition(0)
+                }
+            }
 
             if (pedidos.isEmpty()) {
                 emptyView.visibility = View.VISIBLE
@@ -113,6 +118,9 @@ class PedidosActivity : AppCompatActivity() {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
             }
+
+            // ✅ Cerrar loading DESPUÉS de recibir datos
+            swipeRefresh.isRefreshing = false
         }
 
     }

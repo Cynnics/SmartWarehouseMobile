@@ -102,6 +102,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("androidx.activity:activity:1.6.0-alpha05")
 
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 }

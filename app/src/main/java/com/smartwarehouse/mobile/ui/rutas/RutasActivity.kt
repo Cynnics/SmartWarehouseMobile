@@ -69,10 +69,13 @@ class RutasActivity : AppCompatActivity() {
             } else {
                 emptyView.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
-                rutaAdapter.submitList(rutas)
+                rutaAdapter.submitList(rutas) {
+                    // ✅ Scroll al inicio tras actualizar lista
+                    recyclerView.scrollToPosition(0)
+                }
             }
 
-            // Cuando Room actualiza, cierro el loading
+            // ✅ Cerrar loading DESPUÉS de recibir datos
             swipeRefresh.isRefreshing = false
             progressBar.visibility = View.GONE
         }

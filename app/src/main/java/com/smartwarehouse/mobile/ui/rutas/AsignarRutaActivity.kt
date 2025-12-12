@@ -1,5 +1,6 @@
 package com.smartwarehouse.mobile.ui.rutas
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -14,6 +15,7 @@ import com.smartwarehouse.mobile.R
 import com.smartwarehouse.mobile.adapter.PedidoSeleccionableAdapter
 import com.smartwarehouse.mobile.utils.NetworkResult
 import com.smartwarehouse.mobile.data.model.response.Pedido
+import com.smartwarehouse.mobile.ui.admin.TodasRutasActivity
 import com.smartwarehouse.mobile.utils.showToast
 import java.text.SimpleDateFormat
 import java.util.*
@@ -265,7 +267,9 @@ class AsignarRutaActivity : AppCompatActivity() {
             .setTitle("✅ Ruta Creada")
             .setMessage("La ruta ha sido creada exitosamente y los pedidos han sido asignados al repartidor.")
             .setPositiveButton("Ver Rutas") { _, _ ->
-                // TODO: Navegar a lista de rutas
+                val intent = Intent(this, TodasRutasActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(intent)
                 finish()
             }
             .setNegativeButton("Crear Otra") { _, _ ->

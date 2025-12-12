@@ -253,6 +253,9 @@ class TrackingControlActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnIniciarTracking.isEnabled = !isAnyServiceActive
         btnDetenerTracking.isEnabled = isAnyServiceActive
+
+        // ✅ Actualizar estado del switch según servicio activo
+        switchModoSimulacion.isChecked = MockLocationService.isMocking
         switchModoSimulacion.isEnabled = !isAnyServiceActive
     }
 
